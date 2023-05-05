@@ -42,19 +42,18 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 var _KeyringController_keyring;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.KeyringController = exports.SignTypedDataVersion = exports.AccountImportStrategy = exports.KeyringTypes = void 0;
 const ethereumjs_util_1 = require("ethereumjs-util");
 const eth_sig_util_1 = require("eth-sig-util");
 const ethereumjs_wallet_1 = __importStar(require("ethereumjs-wallet"));
-const eth_keyring_controller_1 = __importDefault(require("eth-keyring-controller"));
+// import KeyringController from 'tron-keyring-controller';
 const async_mutex_1 = require("async-mutex");
 const base_controller_1 = require("@metamask/base-controller");
 const controller_utils_1 = require("@metamask/controller-utils");
+const Keyring = require('tron-keyring-controller');
+// const ETHKeyringController = require('eth-keyring-controller');
 /**
  * Available keyring types
  */
@@ -113,7 +112,7 @@ class KeyringController extends base_controller_1.BaseController {
          */
         this.name = 'KeyringController';
         _KeyringController_keyring.set(this, void 0);
-        __classPrivateFieldSet(this, _KeyringController_keyring, new eth_keyring_controller_1.default(Object.assign({ initState: state }, config)), "f");
+        __classPrivateFieldSet(this, _KeyringController_keyring, new Keyring(Object.assign({ initState: state }, config)), "f");
         this.defaultState = Object.assign(Object.assign({}, __classPrivateFieldGet(this, _KeyringController_keyring, "f").store.getState()), { keyrings: [] });
         this.removeIdentity = removeIdentity;
         this.syncIdentities = syncIdentities;

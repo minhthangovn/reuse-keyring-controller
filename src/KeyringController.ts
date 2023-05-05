@@ -12,7 +12,7 @@ import {
   signTypedDataLegacy,
 } from 'eth-sig-util';
 import Wallet, { thirdparty as importers } from 'ethereumjs-wallet';
-import Keyring from 'eth-keyring-controller';
+// import KeyringController from 'tron-keyring-controller';
 import { Mutex } from 'async-mutex';
 import {
   MetaMaskKeyring as QRKeyring,
@@ -30,6 +30,9 @@ import {
   TypedMessageParams,
 } from '@metamask/message-manager';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+
+const Keyring = require('tron-keyring-controller');
+// const ETHKeyringController = require('eth-keyring-controller');
 
 /**
  * Available keyring types
