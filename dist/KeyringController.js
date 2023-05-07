@@ -48,6 +48,7 @@ exports.KeyringController = exports.SignTypedDataVersion = exports.AccountImport
 const ethereumjs_util_1 = require("ethereumjs-util");
 const eth_sig_util_1 = require("eth-sig-util");
 const ethereumjs_wallet_1 = __importStar(require("ethereumjs-wallet"));
+// import Keyring from 'eth-keyring-controller';
 // import KeyringController from 'tron-keyring-controller';
 const async_mutex_1 = require("async-mutex");
 const base_controller_1 = require("@metamask/base-controller");
@@ -129,6 +130,7 @@ class KeyringController extends base_controller_1.BaseController {
      */
     addNewAccount() {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("🌈🌈🌈 addNewAccount 🌈🌈🌈");
             const primaryKeyring = __classPrivateFieldGet(this, _KeyringController_keyring, "f").getKeyringsByType('HD Key Tree')[0];
             /* istanbul ignore if */
             if (!primaryKeyring) {
@@ -137,6 +139,8 @@ class KeyringController extends base_controller_1.BaseController {
             const oldAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
             yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").addNewAccount(primaryKeyring);
             const newAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
+            console.log("🌈🌈🌈 primaryKeyring: ", primaryKeyring);
+            console.log("🌈🌈🌈 newAccounts: ", newAccounts);
             yield this.verifySeedPhrase();
             this.updateIdentities(newAccounts);
             newAccounts.forEach((selectedAddress) => {
@@ -154,6 +158,7 @@ class KeyringController extends base_controller_1.BaseController {
      */
     addNewAccountWithoutUpdate() {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("🌈🌈🌈 addNewAccountWithoutUpdate 🌈🌈🌈");
             const primaryKeyring = __classPrivateFieldGet(this, _KeyringController_keyring, "f").getKeyringsByType('HD Key Tree')[0];
             /* istanbul ignore if */
             if (!primaryKeyring) {
@@ -175,6 +180,8 @@ class KeyringController extends base_controller_1.BaseController {
      */
     createNewVaultAndRestore(password, seed) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("🌈🌈🌈 createNewVaultAndRestore 🌈🌈🌈");
+            console.log("🌈🌈🌈 seed: ", seed);
             const releaseLock = yield this.mutex.acquire();
             if (!password || !password.length) {
                 throw new Error('Invalid password');
@@ -182,8 +189,13 @@ class KeyringController extends base_controller_1.BaseController {
             try {
                 this.updateIdentities([]);
                 const vault = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").createNewVaultAndRestore(password, seed);
+                console.log("🌈🌈🌈 this.#keyring.getAccounts(): ", __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
                 this.updateIdentities(yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
                 this.fullUpdate();
+                // console.log("🌈🌈🌈 this.#keyring.getAccounts(): ", this.#keyring.getAccounts());
+                // console.log("🌈🌈🌈 this.removeIdentity: ", this.removeIdentity);
+                // console.log("🌈🌈🌈 this.syncIdentities: ", this.syncIdentities);
+                // console.log("🌈🌈🌈 this.setSelectedAddress: ", this.setSelectedAddress);
                 return vault;
             }
             finally {
@@ -469,6 +481,7 @@ class KeyringController extends base_controller_1.BaseController {
      */
     verifySeedPhrase() {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log('🌈🌈🌈 verifySeedPhrase 🌈🌈🌈');
             const primaryKeyring = __classPrivateFieldGet(this, _KeyringController_keyring, "f").getKeyringsByType(KeyringTypes.hd)[0];
             /* istanbul ignore if */
             if (!primaryKeyring) {
