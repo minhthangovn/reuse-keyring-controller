@@ -39,7 +39,7 @@
     "eth-sig-util": "^3.0.0",
     "ethereumjs-util": "^7.0.10",
     "ethereumjs-wallet": "^1.0.1",
-    "tron-keyring-controller": "git+https://github.com/minhthangovn/tron-keyring-controller.git#v4.0.1"
+    "tron-keyring-controller": "git+https://github.com/minhthangovn/tron-keyring-controller.git#v4.0.2"
   },
   "devDependencies": {
     "@ethereumjs/common": "^2.3.1",
