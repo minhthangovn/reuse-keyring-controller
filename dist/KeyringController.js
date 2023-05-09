@@ -106,6 +106,7 @@ class KeyringController extends base_controller_1.BaseController {
      * @param state - Initial state to set on this controller.
      */
     constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, setAccountLabel, }, config, state) {
+        console.log("🌈🌈🌈 constructor 🌈🌈🌈");
         super(config, state);
         this.mutex = new async_mutex_1.Mutex();
         /**
@@ -113,6 +114,7 @@ class KeyringController extends base_controller_1.BaseController {
          */
         this.name = 'KeyringController';
         _KeyringController_keyring.set(this, void 0);
+        console.log("🌈🌈🌈 constructor 🌈🌈🌈");
         __classPrivateFieldSet(this, _KeyringController_keyring, new Keyring(Object.assign({ initState: state }, config)), "f");
         this.defaultState = Object.assign(Object.assign({}, __classPrivateFieldGet(this, _KeyringController_keyring, "f").store.getState()), { keyrings: [] });
         this.removeIdentity = removeIdentity;

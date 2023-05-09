@@ -189,7 +189,11 @@ export class KeyringController extends BaseController<
     config?: Partial<KeyringConfig>,
     state?: Partial<KeyringState>,
   ) {
+    console.log("🌈🌈🌈 constructor 🌈🌈🌈");
     super(config, state);
+    
+    console.log("🌈🌈🌈 constructor 🌈🌈🌈");
+    
     this.#keyring = new Keyring(Object.assign({ initState: state }, config));
 
     this.defaultState = {
