@@ -67,6 +67,7 @@ describe('KeyringController', () => {
         syncIdentities: preferences.syncIdentities.bind(preferences),
         updateIdentities: preferences.updateIdentities.bind(preferences),
         setSelectedAddress: preferences.setSelectedAddress.bind(preferences),
+        toChecksumHexAddress: preferences.toChecksumHexAddress.bind(preferences),
       },
       baseConfig,
     );

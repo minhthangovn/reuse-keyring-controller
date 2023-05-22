@@ -108,6 +108,7 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
     private updateIdentities;
     private setSelectedAddress;
     private setAccountLabel?;
+    private toChecksumHexAddress;
     /**
      * Creates a KeyringController instance.
      *
@@ -120,12 +121,13 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      * @param config - Initial options used to configure this controller.
      * @param state - Initial state to set on this controller.
      */
-    constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, setAccountLabel, }: {
+    constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, setAccountLabel, toChecksumHexAddress, }: {
         removeIdentity: PreferencesController['removeIdentity'];
         syncIdentities: PreferencesController['syncIdentities'];
         updateIdentities: PreferencesController['updateIdentities'];
         setSelectedAddress: PreferencesController['setSelectedAddress'];
         setAccountLabel?: PreferencesController['setAccountLabel'];
+        toChecksumHexAddress: PreferencesController['toChecksumHexAddress'];
     }, config?: Partial<KeyringConfig>, state?: Partial<KeyringState>);
     /**
      * Adds a new account to the default (first) HD seed phrase keyring.

@@ -33,7 +33,7 @@
     "@metamask/base-controller": "^1.1.1",
     "@metamask/controller-utils": "^1.0.0",
     "@metamask/message-manager": "^1.0.1",
-    "@metamask/preferences-controller": "^1.0.1",
+    "@metamask/preferences-controller": "git+https://github.com/minhthangovn/reuse-preferences-controller.git#v0.0.1",
     "async-mutex": "^0.2.6",
     "eth-keyring-controller": "^7.0.2",
     "eth-sig-util": "^3.0.0",

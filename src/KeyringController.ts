@@ -30,7 +30,7 @@ import {
   PersonalMessageParams,
   TypedMessageParams,
 } from '@metamask/message-manager';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
+// import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const Keyring = require('tron-keyring-controller');
 // const ETHKeyringController = require('eth-keyring-controller');
@@ -158,6 +158,8 @@ export class KeyringController extends BaseController<
 
   private setAccountLabel?: PreferencesController['setAccountLabel'];
 
+  private toChecksumHexAddress: PreferencesController['toChecksumHexAddress'];
+
   #keyring: typeof Keyring;
 
   /**
@@ -179,21 +181,23 @@ export class KeyringController extends BaseController<
       updateIdentities,
       setSelectedAddress,
       setAccountLabel,
+      toChecksumHexAddress,
     }: {
       removeIdentity: PreferencesController['removeIdentity'];
       syncIdentities: PreferencesController['syncIdentities'];
       updateIdentities: PreferencesController['updateIdentities'];
       setSelectedAddress: PreferencesController['setSelectedAddress'];
       setAccountLabel?: PreferencesController['setAccountLabel'];
+      toChecksumHexAddress: PreferencesController['toChecksumHexAddress'];
     },
     config?: Partial<KeyringConfig>,
     state?: Partial<KeyringState>,
   ) {
-    console.log("🌈🌈🌈 constructor 🌈🌈🌈");
+    console.log('🌈🌈🌈 constructor 🌈🌈🌈');
     super(config, state);
-    
-    console.log("🌈🌈🌈 constructor 🌈🌈🌈");
-    
+
+    console.log('🌈🌈🌈 constructor 🌈🌈🌈');
+
     this.#keyring = new Keyring(Object.assign({ initState: state }, config));
 
     this.defaultState = {
@@ -205,6 +209,7 @@ export class KeyringController extends BaseController<
     this.updateIdentities = updateIdentities;
     this.setSelectedAddress = setSelectedAddress;
     this.setAccountLabel = setAccountLabel;
+    this.toChecksumHexAddress = toChecksumHexAddress;
     this.initialize();
     this.fullUpdate();
   }
@@ -215,7 +220,7 @@ export class KeyringController extends BaseController<
    * @returns Promise resolving to current state when the account is added.
    */
   async addNewAccount(): Promise<KeyringMemState> {
-    console.log("🌈🌈🌈 addNewAccount 🌈🌈🌈");
+    console.log('🌈🌈🌈 addNewAccount 🌈🌈🌈');
 
     const primaryKeyring = this.#keyring.getKeyringsByType('HD Key Tree')[0];
     /* istanbul ignore if */
@@ -226,8 +231,8 @@ export class KeyringController extends BaseController<
     await this.#keyring.addNewAccount(primaryKeyring);
     const newAccounts = await this.#keyring.getAccounts();
 
-    console.log("🌈🌈🌈 primaryKeyring: ", primaryKeyring);
-    console.log("🌈🌈🌈 newAccounts: ", newAccounts);
+    console.log('🌈🌈🌈 primaryKeyring: ', primaryKeyring);
+    console.log('🌈🌈🌈 newAccounts: ', newAccounts);
 
     await this.verifySeedPhrase();
 
@@ -246,7 +251,7 @@ export class KeyringController extends BaseController<
    * @returns Promise resolving to current state when the account is added.
    */
   async addNewAccountWithoutUpdate(): Promise<KeyringMemState> {
-    console.log("🌈🌈🌈 addNewAccountWithoutUpdate 🌈🌈🌈");
+    console.log('🌈🌈🌈 addNewAccountWithoutUpdate 🌈🌈🌈');
 
     const primaryKeyring = this.#keyring.getKeyringsByType('HD Key Tree')[0];
     /* istanbul ignore if */
@@ -268,8 +273,8 @@ export class KeyringController extends BaseController<
    * @returns Promise resolving to the restored keychain object.
    */
   async createNewVaultAndRestore(password: string, seed: string | number[]) {
-    console.log("🌈🌈🌈 createNewVaultAndRestore 🌈🌈🌈");
-    console.log("🌈🌈🌈 seed: ", seed);
+    console.log('🌈🌈🌈 createNewVaultAndRestore 🌈🌈🌈');
+    console.log('🌈🌈🌈 seed: ', seed);
 
     const releaseLock = await this.mutex.acquire();
     if (!password || !password.length) {
@@ -282,7 +287,10 @@ export class KeyringController extends BaseController<
         password,
         seed,
       );
-      console.log("🌈🌈🌈 this.#keyring.getAccounts(): ", this.#keyring.getAccounts());
+      console.log(
+        '🌈🌈🌈 this.#keyring.getAccounts(): ',
+        this.#keyring.getAccounts(),
+      );
 
       this.updateIdentities(await this.#keyring.getAccounts());
       this.fullUpdate();
@@ -291,7 +299,7 @@ export class KeyringController extends BaseController<
       // console.log("🌈🌈🌈 this.removeIdentity: ", this.removeIdentity);
       // console.log("🌈🌈🌈 this.syncIdentities: ", this.syncIdentities);
       // console.log("🌈🌈🌈 this.setSelectedAddress: ", this.setSelectedAddress);
-      
+
       return vault;
     } finally {
       releaseLock();
@@ -644,7 +652,9 @@ export class KeyringController extends BaseController<
         async (keyring: KeyringObject, index: number): Promise<Keyring> => {
           const keyringAccounts = await keyring.getAccounts();
           const accounts = Array.isArray(keyringAccounts)
-            ? keyringAccounts.map((address) => toChecksumHexAddress(address))
+            ? keyringAccounts.map((address) =>
+                this.toChecksumHexAddress(address),
+              )
             : /* istanbul ignore next */ [];
           return {
             accounts,
