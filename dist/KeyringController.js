@@ -42,19 +42,19 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 var _KeyringController_keyring;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.KeyringController = exports.SignTypedDataVersion = exports.AccountImportStrategy = exports.KeyringTypes = void 0;
 const ethereumjs_util_1 = require("ethereumjs-util");
 const eth_sig_util_1 = require("eth-sig-util");
 const ethereumjs_wallet_1 = __importStar(require("ethereumjs-wallet"));
-const eth_keyring_controller_1 = __importDefault(require("eth-keyring-controller"));
+// import Keyring from 'eth-keyring-controller';
+// import KeyringController from 'tron-keyring-controller';
 const async_mutex_1 = require("async-mutex");
 const base_controller_1 = require("@metamask/base-controller");
 const controller_utils_1 = require("@metamask/controller-utils");
+const Keyring = require('tron-keyring-controller');
+// const ETHKeyringController = require('eth-keyring-controller');
 /**
  * Available keyring types
  */
@@ -106,6 +106,7 @@ class KeyringController extends base_controller_1.BaseController {
      * @param state - Initial state to set on this controller.
      */
     constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, setAccountLabel, }, config, state) {
+        console.log("🌈🌈🌈 constructor 🌈🌈🌈");
         super(config, state);
         this.mutex = new async_mutex_1.Mutex();
         /**
@@ -113,7 +114,8 @@ class KeyringController extends base_controller_1.BaseController {
          */
         this.name = 'KeyringController';
         _KeyringController_keyring.set(this, void 0);
-        __classPrivateFieldSet(this, _KeyringController_keyring, new eth_keyring_controller_1.default(Object.assign({ initState: state }, config)), "f");
+        console.log("🌈🌈🌈 constructor 🌈🌈🌈");
+        __classPrivateFieldSet(this, _KeyringController_keyring, new Keyring(Object.assign({ initState: state }, config)), "f");
         this.defaultState = Object.assign(Object.assign({}, __classPrivateFieldGet(this, _KeyringController_keyring, "f").store.getState()), { keyrings: [] });
         this.removeIdentity = removeIdentity;
         this.syncIdentities = syncIdentities;
@@ -130,6 +132,7 @@ class KeyringController extends base_controller_1.BaseController {
      */
     addNewAccount() {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("🌈🌈🌈 addNewAccount 🌈🌈🌈");
             const primaryKeyring = __classPrivateFieldGet(this, _KeyringController_keyring, "f").getKeyringsByType('HD Key Tree')[0];
             /* istanbul ignore if */
             if (!primaryKeyring) {
@@ -138,6 +141,8 @@ class KeyringController extends base_controller_1.BaseController {
             const oldAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
             yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").addNewAccount(primaryKeyring);
             const newAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
+            console.log("🌈🌈🌈 primaryKeyring: ", primaryKeyring);
+            console.log("🌈🌈🌈 newAccounts: ", newAccounts);
             yield this.verifySeedPhrase();
             this.updateIdentities(newAccounts);
             newAccounts.forEach((selectedAddress) => {
@@ -155,6 +160,7 @@ class KeyringController extends base_controller_1.BaseController {
      */
     addNewAccountWithoutUpdate() {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("🌈🌈🌈 addNewAccountWithoutUpdate 🌈🌈🌈");
             const primaryKeyring = __classPrivateFieldGet(this, _KeyringController_keyring, "f").getKeyringsByType('HD Key Tree')[0];
             /* istanbul ignore if */
             if (!primaryKeyring) {
@@ -176,6 +182,8 @@ class KeyringController extends base_controller_1.BaseController {
      */
     createNewVaultAndRestore(password, seed) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("🌈🌈🌈 createNewVaultAndRestore 🌈🌈🌈");
+            console.log("🌈🌈🌈 seed: ", seed);
             const releaseLock = yield this.mutex.acquire();
             if (!password || !password.length) {
                 throw new Error('Invalid password');
@@ -183,8 +191,13 @@ class KeyringController extends base_controller_1.BaseController {
             try {
                 this.updateIdentities([]);
                 const vault = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").createNewVaultAndRestore(password, seed);
+                console.log("🌈🌈🌈 this.#keyring.getAccounts(): ", __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
                 this.updateIdentities(yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
                 this.fullUpdate();
+                // console.log("🌈🌈🌈 this.#keyring.getAccounts(): ", this.#keyring.getAccounts());
+                // console.log("🌈🌈🌈 this.removeIdentity: ", this.removeIdentity);
+                // console.log("🌈🌈🌈 this.syncIdentities: ", this.syncIdentities);
+                // console.log("🌈🌈🌈 this.setSelectedAddress: ", this.setSelectedAddress);
                 return vault;
             }
             finally {
@@ -470,6 +483,7 @@ class KeyringController extends base_controller_1.BaseController {
      */
     verifySeedPhrase() {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log('🌈🌈🌈 verifySeedPhrase 🌈🌈🌈');
             const primaryKeyring = __classPrivateFieldGet(this, _KeyringController_keyring, "f").getKeyringsByType(KeyringTypes.hd)[0];
             /* istanbul ignore if */
             if (!primaryKeyring) {

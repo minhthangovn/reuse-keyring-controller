@@ -12,7 +12,8 @@ import {
   signTypedDataLegacy,
 } from 'eth-sig-util';
 import Wallet, { thirdparty as importers } from 'ethereumjs-wallet';
-import Keyring from 'eth-keyring-controller';
+// import Keyring from 'eth-keyring-controller';
+// import KeyringController from 'tron-keyring-controller';
 import { Mutex } from 'async-mutex';
 import {
   MetaMaskKeyring as QRKeyring,
@@ -30,6 +31,9 @@ import {
   TypedMessageParams,
 } from '@metamask/message-manager';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+
+const Keyring = require('tron-keyring-controller');
+// const ETHKeyringController = require('eth-keyring-controller');
 
 /**
  * Available keyring types
@@ -185,7 +189,11 @@ export class KeyringController extends BaseController<
     config?: Partial<KeyringConfig>,
     state?: Partial<KeyringState>,
   ) {
+    console.log("🌈🌈🌈 constructor 🌈🌈🌈");
     super(config, state);
+    
+    console.log("🌈🌈🌈 constructor 🌈🌈🌈");
+    
     this.#keyring = new Keyring(Object.assign({ initState: state }, config));
 
     this.defaultState = {
@@ -207,6 +215,8 @@ export class KeyringController extends BaseController<
    * @returns Promise resolving to current state when the account is added.
    */
   async addNewAccount(): Promise<KeyringMemState> {
+    console.log("🌈🌈🌈 addNewAccount 🌈🌈🌈");
+
     const primaryKeyring = this.#keyring.getKeyringsByType('HD Key Tree')[0];
     /* istanbul ignore if */
     if (!primaryKeyring) {
@@ -215,6 +225,9 @@ export class KeyringController extends BaseController<
     const oldAccounts = await this.#keyring.getAccounts();
     await this.#keyring.addNewAccount(primaryKeyring);
     const newAccounts = await this.#keyring.getAccounts();
+
+    console.log("🌈🌈🌈 primaryKeyring: ", primaryKeyring);
+    console.log("🌈🌈🌈 newAccounts: ", newAccounts);
 
     await this.verifySeedPhrase();
 
@@ -233,6 +246,8 @@ export class KeyringController extends BaseController<
    * @returns Promise resolving to current state when the account is added.
    */
   async addNewAccountWithoutUpdate(): Promise<KeyringMemState> {
+    console.log("🌈🌈🌈 addNewAccountWithoutUpdate 🌈🌈🌈");
+
     const primaryKeyring = this.#keyring.getKeyringsByType('HD Key Tree')[0];
     /* istanbul ignore if */
     if (!primaryKeyring) {
@@ -253,6 +268,9 @@ export class KeyringController extends BaseController<
    * @returns Promise resolving to the restored keychain object.
    */
   async createNewVaultAndRestore(password: string, seed: string | number[]) {
+    console.log("🌈🌈🌈 createNewVaultAndRestore 🌈🌈🌈");
+    console.log("🌈🌈🌈 seed: ", seed);
+
     const releaseLock = await this.mutex.acquire();
     if (!password || !password.length) {
       throw new Error('Invalid password');
@@ -264,8 +282,16 @@ export class KeyringController extends BaseController<
         password,
         seed,
       );
+      console.log("🌈🌈🌈 this.#keyring.getAccounts(): ", this.#keyring.getAccounts());
+
       this.updateIdentities(await this.#keyring.getAccounts());
       this.fullUpdate();
+
+      // console.log("🌈🌈🌈 this.#keyring.getAccounts(): ", this.#keyring.getAccounts());
+      // console.log("🌈🌈🌈 this.removeIdentity: ", this.removeIdentity);
+      // console.log("🌈🌈🌈 this.syncIdentities: ", this.syncIdentities);
+      // console.log("🌈🌈🌈 this.setSelectedAddress: ", this.setSelectedAddress);
+      
       return vault;
     } finally {
       releaseLock();
@@ -570,6 +596,7 @@ export class KeyringController extends BaseController<
    * @returns Whether the verification succeeds.
    */
   async verifySeedPhrase(): Promise<string> {
+    console.log('🌈🌈🌈 verifySeedPhrase 🌈🌈🌈');
     const primaryKeyring = this.#keyring.getKeyringsByType(KeyringTypes.hd)[0];
     /* istanbul ignore if */
     if (!primaryKeyring) {
