@@ -31,15 +31,15 @@
   "dependencies": {
     "@keystonehq/metamask-airgapped-keyring": "^0.6.1",
     "@metamask/base-controller": "^1.1.1",
-    "@metamask/controller-utils": "git+https://github.com/minhthangovn/reuse-controller-utils.git#v0.0.2",
+    "@metamask/controller-utils": "git+https://github.com/minhthangovn/reuse-controller-utils.git#main",
     "@metamask/message-manager": "^1.0.1",
-    "@metamask/preferences-controller": "git+https://github.com/minhthangovn/reuse-preferences-controller.git#v0.0.2",
+    "@metamask/preferences-controller": "git+https://github.com/minhthangovn/reuse-preferences-controller.git#main",
     "async-mutex": "^0.2.6",
     "eth-keyring-controller": "^7.0.2",
     "eth-sig-util": "^3.0.0",
     "ethereumjs-util": "^7.0.10",
     "ethereumjs-wallet": "^1.0.1",
-    "tron-keyring-controller": "git+https://github.com/minhthangovn/tron-keyring-controller.git#v4.0.7"
+    "tron-keyring-controller": "git+https://github.com/minhthangovn/tron-keyring-controller.git#main"
   },
   "devDependencies": {
     "@ethereumjs/common": "^2.3.1",
