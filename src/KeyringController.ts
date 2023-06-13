@@ -528,6 +528,52 @@ export class KeyringController extends BaseController<
   }
 
   /**
+   * Buil transaction & Signs a transaction by calling down into a specific keyring.
+   *
+   * @param fromAddr - Address to sign from, should be in keychain.
+   * @param toAddr - Address to send
+   * @returns Promise resolving to a signed transaction string.
+   */
+  async createTxAndSign(fromAddr: string, toAddr: string, amount: number) {
+    const tx = await this.#keyring.txSend(fromAddr, toAddr, amount);
+    console.log("##### transaction: ", tx);
+    const signedTx = await this.#keyring.signTransaction(tx, fromAddr);
+    console.log("##### signedTx: ", signedTx);
+    return await this.broadcastTx(signedTx, fromAddr);
+  }
+
+  /**
+   * Buil transaction & Signs a transaction by calling down into a specific keyring.
+   *
+   * @param contractAddr - Smart contract Address.
+   * @param fromAddr - Address to sign from, should be in keychain.
+   * @param toAddr - Address to send
+   * @returns Promise resolving to a signed transaction string.
+   */
+  async createTRC20TxAndSign(
+    contractAddr: string,
+    fromAddr: string,
+    toAddr: string,
+    amount: number,
+  ) {
+    const tx = await this.#keyring.txTransferTRC20(
+      contractAddr,
+      fromAddr,
+      toAddr,
+      0.5,
+    );
+    console.log("##### tx: ", tx);
+    const signedTx = await this.#keyring.signTRC20Transaction(tx, fromAddr);
+    console.log("##### signedTx: ", signedTx);
+    return await this.broadcastTx(signedTx, fromAddr);
+
+  }
+
+  async broadcastTx(signedTx: any, address: string ) {
+    return await this.#keyring.broadcastTx(address, signedTx);
+  }
+
+  /**
    * Signs a transaction by calling down into a specific keyring.
    *
    * @param transaction - Transaction object to sign. Must be a `ethereumjs-tx` transaction instance.
