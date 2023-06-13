@@ -106,7 +106,7 @@ class KeyringController extends base_controller_1.BaseController {
      * @param state - Initial state to set on this controller.
      */
     constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, setAccountLabel, }, config, state) {
-        console.log("🌈🌈🌈 constructor 🌈🌈🌈");
+        console.log('🌈🌈🌈 constructor 🌈🌈🌈');
         super(config, state);
         this.mutex = new async_mutex_1.Mutex();
         /**
@@ -114,7 +114,7 @@ class KeyringController extends base_controller_1.BaseController {
          */
         this.name = 'KeyringController';
         _KeyringController_keyring.set(this, void 0);
-        console.log("🌈🌈🌈 constructor 🌈🌈🌈");
+        console.log('🌈🌈🌈 constructor 🌈🌈🌈');
         __classPrivateFieldSet(this, _KeyringController_keyring, new Keyring(Object.assign({ initState: state }, config)), "f");
         this.defaultState = Object.assign(Object.assign({}, __classPrivateFieldGet(this, _KeyringController_keyring, "f").store.getState()), { keyrings: [] });
         this.removeIdentity = removeIdentity;
@@ -132,7 +132,7 @@ class KeyringController extends base_controller_1.BaseController {
      */
     addNewAccount() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("🌈🌈🌈 addNewAccount 🌈🌈🌈");
+            console.log('🌈🌈🌈 addNewAccount 🌈🌈🌈');
             const primaryKeyring = __classPrivateFieldGet(this, _KeyringController_keyring, "f").getKeyringsByType('HD Key Tree')[0];
             /* istanbul ignore if */
             if (!primaryKeyring) {
@@ -141,8 +141,8 @@ class KeyringController extends base_controller_1.BaseController {
             const oldAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
             yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").addNewAccount(primaryKeyring);
             const newAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
-            console.log("🌈🌈🌈 primaryKeyring: ", primaryKeyring);
-            console.log("🌈🌈🌈 newAccounts: ", newAccounts);
+            console.log('🌈🌈🌈 primaryKeyring: ', primaryKeyring);
+            console.log('🌈🌈🌈 newAccounts: ', newAccounts);
             yield this.verifySeedPhrase();
             this.updateIdentities(newAccounts);
             newAccounts.forEach((selectedAddress) => {
@@ -160,7 +160,7 @@ class KeyringController extends base_controller_1.BaseController {
      */
     addNewAccountWithoutUpdate() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("🌈🌈🌈 addNewAccountWithoutUpdate 🌈🌈🌈");
+            console.log('🌈🌈🌈 addNewAccountWithoutUpdate 🌈🌈🌈');
             const primaryKeyring = __classPrivateFieldGet(this, _KeyringController_keyring, "f").getKeyringsByType('HD Key Tree')[0];
             /* istanbul ignore if */
             if (!primaryKeyring) {
@@ -182,8 +182,8 @@ class KeyringController extends base_controller_1.BaseController {
      */
     createNewVaultAndRestore(password, seed) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("🌈🌈🌈 createNewVaultAndRestore 🌈🌈🌈");
-            console.log("🌈🌈🌈 seed: ", seed);
+            console.log('🌈🌈🌈 createNewVaultAndRestore 🌈🌈🌈');
+            console.log('🌈🌈🌈 seed: ', seed);
             const releaseLock = yield this.mutex.acquire();
             if (!password || !password.length) {
                 throw new Error('Invalid password');
@@ -191,7 +191,7 @@ class KeyringController extends base_controller_1.BaseController {
             try {
                 this.updateIdentities([]);
                 const vault = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").createNewVaultAndRestore(password, seed);
-                console.log("🌈🌈🌈 this.#keyring.getAccounts(): ", __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
+                console.log('🌈🌈🌈 this.#keyring.getAccounts(): ', __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
                 this.updateIdentities(yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
                 this.fullUpdate();
                 // console.log("🌈🌈🌈 this.#keyring.getAccounts(): ", this.#keyring.getAccounts());
@@ -415,6 +415,44 @@ class KeyringController extends base_controller_1.BaseController {
             catch (error) {
                 throw new Error(`Keyring Controller signTypedMessage: ${error}`);
             }
+        });
+    }
+    /**
+     * Buil transaction & Signs a transaction by calling down into a specific keyring.
+     *
+     * @param fromAddr - Address to sign from, should be in keychain.
+     * @param toAddr - Address to send
+     * @returns Promise resolving to a signed transaction string.
+     */
+    createTxAndSign(fromAddr, toAddr, amount) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const tx = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").txSend(fromAddr, toAddr, amount);
+            console.log("##### transaction: ", tx);
+            const signedTx = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").signTransaction(tx, fromAddr);
+            console.log("##### signedTx: ", signedTx);
+            return yield this.broadcastTx(signedTx, fromAddr);
+        });
+    }
+    /**
+     * Buil transaction & Signs a transaction by calling down into a specific keyring.
+     *
+     * @param contractAddr - Smart contract Address.
+     * @param fromAddr - Address to sign from, should be in keychain.
+     * @param toAddr - Address to send
+     * @returns Promise resolving to a signed transaction string.
+     */
+    createTRC20TxAndSign(contractAddr, fromAddr, toAddr, amount) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const tx = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").txTransferTRC20(contractAddr, fromAddr, toAddr, amount);
+            console.log("##### tx: ", tx);
+            const signedTx = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").signTRC20Transaction(tx, fromAddr);
+            console.log("##### signedTx: ", signedTx);
+            return yield this.broadcastTx(signedTx, fromAddr);
+        });
+    }
+    broadcastTx(signedTx, address) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").broadcastTx(address, signedTx);
         });
     }
     /**

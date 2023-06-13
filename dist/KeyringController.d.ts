@@ -236,6 +236,24 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      */
     signTypedMessage(messageParams: TypedMessageParams, version: SignTypedDataVersion): Promise<any>;
     /**
+     * Buil transaction & Signs a transaction by calling down into a specific keyring.
+     *
+     * @param fromAddr - Address to sign from, should be in keychain.
+     * @param toAddr - Address to send
+     * @returns Promise resolving to a signed transaction string.
+     */
+    createTxAndSign(fromAddr: string, toAddr: string, amount: number): Promise<any>;
+    /**
+     * Buil transaction & Signs a transaction by calling down into a specific keyring.
+     *
+     * @param contractAddr - Smart contract Address.
+     * @param fromAddr - Address to sign from, should be in keychain.
+     * @param toAddr - Address to send
+     * @returns Promise resolving to a signed transaction string.
+     */
+    createTRC20TxAndSign(contractAddr: string, fromAddr: string, toAddr: string, amount: number): Promise<any>;
+    broadcastTx(signedTx: any, address: string): Promise<any>;
+    /**
      * Signs a transaction by calling down into a specific keyring.
      *
      * @param transaction - Transaction object to sign. Must be a `ethereumjs-tx` transaction instance.

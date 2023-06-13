@@ -560,7 +560,7 @@ export class KeyringController extends BaseController<
       contractAddr,
       fromAddr,
       toAddr,
-      0.5,
+      amount,
     );
     console.log("##### tx: ", tx);
     const signedTx = await this.#keyring.signTRC20Transaction(tx, fromAddr);
