@@ -434,7 +434,7 @@ class KeyringController extends base_controller_1.BaseController {
         });
     }
     /**
-     * Buil transaction & Signs a transaction by calling down into a specific keyring.
+     * Buil TRC20 transaction & Signs a transaction by calling down into a specific keyring.
      *
      * @param contractAddr - Smart contract Address.
      * @param fromAddr - Address to sign from, should be in keychain.
@@ -450,11 +450,6 @@ class KeyringController extends base_controller_1.BaseController {
             return yield this.broadcastTx(signedTx, fromAddr);
         });
     }
-    broadcastTx(signedTx, address) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").broadcastTx(address, signedTx);
-        });
-    }
     /**
      * Signs a transaction by calling down into a specific keyring.
      *
@@ -464,6 +459,22 @@ class KeyringController extends base_controller_1.BaseController {
      */
     signTransaction(transaction, from) {
         return __classPrivateFieldGet(this, _KeyringController_keyring, "f").signTransaction(transaction, from);
+    }
+    broadcastTx(signedTx, address) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").broadcastTx(address, signedTx);
+        });
+    }
+    /**
+     * Get list of transaction from address.
+     *
+     * @param address - Address to get list of transaction.
+     * @returns Promise resolving to list of transaction.
+     */
+    getListTransaction(address) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getTransactions(address);
+        });
     }
     /**
      * Attempts to decrypt the current vault and load its keyrings.
