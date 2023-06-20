@@ -588,6 +588,16 @@ export class KeyringController extends BaseController<
   }
 
   /**
+   * Get balance of Address.
+   *
+   * @param address - Tron address 
+   * @returns  Get balance of Address 
+   */
+  async getBalance(address: string) {
+    return await this.#keyring.getBalance(address);
+  }
+
+  /**
    * Get list of transaction from address.
    *
    * @param address - Address to get list of transaction.

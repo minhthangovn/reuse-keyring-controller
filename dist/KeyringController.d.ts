@@ -262,6 +262,13 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
     signTransaction(transaction: unknown, from: string): any;
     broadcastTx(signedTx: any, address: string): Promise<any>;
     /**
+     * Get balance of Address.
+     *
+     * @param address - Tron address
+     * @returns  Get balance of Address
+     */
+    getBalance(address: string): Promise<any>;
+    /**
      * Get list of transaction from address.
      *
      * @param address - Address to get list of transaction.

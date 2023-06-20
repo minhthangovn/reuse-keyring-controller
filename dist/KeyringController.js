@@ -466,6 +466,17 @@ class KeyringController extends base_controller_1.BaseController {
         });
     }
     /**
+     * Get balance of Address.
+     *
+     * @param address - Tron address
+     * @returns  Get balance of Address
+     */
+    getBalance(address) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getBalance(address);
+        });
+    }
+    /**
      * Get list of transaction from address.
      *
      * @param address - Address to get list of transaction.
