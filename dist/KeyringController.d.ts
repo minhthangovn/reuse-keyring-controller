@@ -1,7 +1,7 @@
-import { MetaMaskKeyring as QRKeyring, IKeyringState as IQRKeyringState } from '@keystonehq/metamask-airgapped-keyring';
-import { BaseController, BaseConfig, BaseState, Listener } from '@metamask/base-controller';
-import { PreferencesController } from '@metamask/preferences-controller';
-import { PersonalMessageParams, TypedMessageParams } from '@metamask/message-manager';
+import { MetaMaskKeyring as QRKeyring, IKeyringState as IQRKeyringState } from "@keystonehq/metamask-airgapped-keyring";
+import { BaseController, BaseConfig, BaseState, Listener } from "@metamask/base-controller";
+import { PreferencesController } from "@metamask/preferences-controller";
+import { PersonalMessageParams, TypedMessageParams } from "@metamask/message-manager";
 /**
  * Available keyring types
  */
@@ -108,6 +108,7 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
     private updateIdentities;
     private setSelectedAddress;
     private setAccountLabel?;
+    selectedAddress: string;
     /**
      * Creates a KeyringController instance.
      *
@@ -121,12 +122,13 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      * @param state - Initial state to set on this controller.
      */
     constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, setAccountLabel, }: {
-        removeIdentity: PreferencesController['removeIdentity'];
-        syncIdentities: PreferencesController['syncIdentities'];
-        updateIdentities: PreferencesController['updateIdentities'];
-        setSelectedAddress: PreferencesController['setSelectedAddress'];
-        setAccountLabel?: PreferencesController['setAccountLabel'];
+        removeIdentity: PreferencesController["removeIdentity"];
+        syncIdentities: PreferencesController["syncIdentities"];
+        updateIdentities: PreferencesController["updateIdentities"];
+        setSelectedAddress: PreferencesController["setSelectedAddress"];
+        setAccountLabel?: PreferencesController["setAccountLabel"];
     }, config?: Partial<KeyringConfig>, state?: Partial<KeyringState>);
+    updateSelectedAddress(selectedAddr: string): void;
     /**
      * Adds a new account to the default (first) HD seed phrase keyring.
      *
@@ -275,6 +277,14 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      * @returns Promise resolving to list of transaction.
      */
     getListTransaction(address: string): Promise<any>;
+    /**
+     * Get contract information
+     *
+     * @param address - Address to get contract information.
+     * @param contract - contract address.
+     * @returns Promise resolving to contract information.
+     */
+    getContract(contract: string): Promise<any>;
     /**
      * Attempts to decrypt the current vault and load its keyrings.
      *

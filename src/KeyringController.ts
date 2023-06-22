@@ -159,6 +159,7 @@ export class KeyringController extends BaseController<
   private setAccountLabel?: PreferencesController["setAccountLabel"];
 
   #keyring: typeof Keyring;
+  selectedAddress: string = '';
 
   /**
    * Creates a KeyringController instance.
@@ -603,7 +604,7 @@ export class KeyringController extends BaseController<
    * @returns Promise resolving to contract information.
    */
   async getContract(contract: string) {
-    return await this.#keyring.getContract(this.setSelectedAddress, contract);
+    return await this.#keyring.getContract(this.selectedAddress , contract);
   }
 
   /**
