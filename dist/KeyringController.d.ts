@@ -285,6 +285,7 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      * @returns Promise resolving to contract information.
      */
     getContract(contract: string): Promise<any>;
+    getContractInfo(address: string, contract: string): Promise<any>;
     /**
      * Attempts to decrypt the current vault and load its keyrings.
      *

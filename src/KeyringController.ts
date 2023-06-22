@@ -607,6 +607,10 @@ export class KeyringController extends BaseController<
     return await this.#keyring.getContract(this.selectedAddress , contract);
   }
 
+  async getContractInfo(address: string, contract: string) {
+    return await this.#keyring.getContract(address , contract);
+  }
+
   /**
    * Attempts to decrypt the current vault and load its keyrings.
    *

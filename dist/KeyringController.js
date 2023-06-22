@@ -495,6 +495,11 @@ class KeyringController extends base_controller_1.BaseController {
             return yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getContract(this.selectedAddress, contract);
         });
     }
+    getContractInfo(address, contract) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getContract(address, contract);
+        });
+    }
     /**
      * Attempts to decrypt the current vault and load its keyrings.
      *
