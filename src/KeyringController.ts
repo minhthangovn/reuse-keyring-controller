@@ -608,6 +608,17 @@ export class KeyringController extends BaseController<
   }
 
   /**
+   * Get contract information
+   *
+   * @param address - Address to get contract information.
+   * @param contract - contract address.
+   * @returns Promise resolving to contract information.
+   */
+  async getContract(address: string, contract: string) {
+    return await this.#keyring.getContract(address, contract);
+  }
+
+  /**
    * Attempts to decrypt the current vault and load its keyrings.
    *
    * @param password - Password to unlock the keychain.
