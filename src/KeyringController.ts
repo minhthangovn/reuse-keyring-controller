@@ -4,44 +4,44 @@ import {
   isValidPrivate,
   toBuffer,
   stripHexPrefix,
-} from "ethereumjs-util";
+} from 'ethereumjs-util';
 import {
   normalize as normalizeAddress,
   signTypedData,
   signTypedData_v4,
   signTypedDataLegacy,
-} from "eth-sig-util";
-import Wallet, { thirdparty as importers } from "ethereumjs-wallet";
+} from 'eth-sig-util';
+import Wallet, { thirdparty as importers } from 'ethereumjs-wallet';
 // import Keyring from 'eth-keyring-controller';
 // import KeyringController from 'tron-keyring-controller';
-import { Mutex } from "async-mutex";
+import { Mutex } from 'async-mutex';
 import {
   MetaMaskKeyring as QRKeyring,
   IKeyringState as IQRKeyringState,
-} from "@keystonehq/metamask-airgapped-keyring";
+} from '@keystonehq/metamask-airgapped-keyring';
 import {
   BaseController,
   BaseConfig,
   BaseState,
   Listener,
-} from "@metamask/base-controller";
-import { PreferencesController } from "@metamask/preferences-controller";
+} from '@metamask/base-controller';
+import { PreferencesController } from '@metamask/preferences-controller';
 import {
   PersonalMessageParams,
   TypedMessageParams,
-} from "@metamask/message-manager";
-import { toChecksumHexAddress } from "@metamask/controller-utils";
+} from '@metamask/message-manager';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
-const Keyring = require("tron-keyring-controller");
-// const ETHKeyringController = require('eth-keyring-controller');
+const TronKeyring = require('tron-keyring-controller');
+const ETHKeyring = require('eth-keyring-controller');
 
 /**
  * Available keyring types
  */
 export enum KeyringTypes {
-  simple = "Simple Key Pair",
-  hd = "HD Key Tree",
-  qr = "QR Hardware Wallet Device",
+  simple = 'Simple Key Pair',
+  hd = 'HD Key Tree',
+  qr = 'QR Hardware Wallet Device',
 }
 
 /**
@@ -113,8 +113,8 @@ export interface Keyring {
  * A strategy for importing an account
  */
 export enum AccountImportStrategy {
-  privateKey = "privateKey",
-  json = "json",
+  privateKey = 'privateKey',
+  json = 'json',
 }
 
 /**
@@ -123,9 +123,16 @@ export enum AccountImportStrategy {
  * @see https://docs.metamask.io/guide/signing-data.html
  */
 export enum SignTypedDataVersion {
-  V1 = "V1",
-  V3 = "V3",
-  V4 = "V4",
+  V1 = 'V1',
+  V3 = 'V3',
+  V4 = 'V4',
+}
+
+const ETH: string = 'ETH';
+const TRX: string = 'TRX';
+
+interface IKeyring {
+  [key: string]: typeof ETHKeyring | typeof TronKeyring;
 }
 
 /**
@@ -146,19 +153,21 @@ export class KeyringController extends BaseController<
   /**
    * Name of this controller used during composition
    */
-  override name = "KeyringController";
+  override name = 'KeyringController';
 
-  private removeIdentity: PreferencesController["removeIdentity"];
+  private removeIdentity: PreferencesController['removeIdentity'];
 
-  private syncIdentities: PreferencesController["syncIdentities"];
+  private syncIdentities: PreferencesController['syncIdentities'];
 
-  private updateIdentities: PreferencesController["updateIdentities"];
+  private updateIdentities: PreferencesController['updateIdentities'];
 
-  private setSelectedAddress: PreferencesController["setSelectedAddress"];
+  private setSelectedAddress: PreferencesController['setSelectedAddress'];
 
-  private setAccountLabel?: PreferencesController["setAccountLabel"];
+  private setAccountLabel?: PreferencesController['setAccountLabel'];
 
-  #keyring: typeof Keyring;
+  // TronKeyring or ETHKeyring
+  #keyring: any;
+  #keyringSwitcher: IKeyring = {};
   selectedAddress: string = '';
 
   /**
@@ -180,18 +189,28 @@ export class KeyringController extends BaseController<
       updateIdentities,
       setSelectedAddress,
       setAccountLabel,
+      defaultNetwork,
     }: {
-      removeIdentity: PreferencesController["removeIdentity"];
-      syncIdentities: PreferencesController["syncIdentities"];
-      updateIdentities: PreferencesController["updateIdentities"];
-      setSelectedAddress: PreferencesController["setSelectedAddress"];
-      setAccountLabel?: PreferencesController["setAccountLabel"];
+      removeIdentity: PreferencesController['removeIdentity'];
+      syncIdentities: PreferencesController['syncIdentities'];
+      updateIdentities: PreferencesController['updateIdentities'];
+      setSelectedAddress: PreferencesController['setSelectedAddress'];
+      setAccountLabel?: PreferencesController['setAccountLabel'];
+      defaultNetwork?: string;
     },
     config?: Partial<KeyringConfig>,
-    state?: Partial<KeyringState>
+    state?: Partial<KeyringState>,
   ) {
     super(config, state);
-    this.#keyring = new Keyring(Object.assign({ initState: state }, config));
+    const keyringConfig = Object.assign({ initState: state }, config);
+    // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
+    this.#keyringSwitcher = {
+      [ETH]: new ETHKeyring(keyringConfig),
+      [TRX]: new TronKeyring(keyringConfig),
+    };
+    const network: string = defaultNetwork || TRX;
+    this.#keyring = this.#keyringSwitcher[network];
+
     this.defaultState = {
       ...this.#keyring.store.getState(),
       keyrings: [],
@@ -210,18 +229,23 @@ export class KeyringController extends BaseController<
     this.setSelectedAddress(selectedAddr);
   }
 
+  switchNetwork(chainId: string) {
+    // this.#keyring = isTRX(chainId)
+    this.#keyring = chainId === '3448148188' ? this.#keyringSwitcher[TRX] : this.#keyringSwitcher[ETH];
+  }
+
   /**
    * Adds a new account to the default (first) HD seed phrase keyring.
    *
    * @returns Promise resolving to current state when the account is added.
    */
   async addNewAccount(): Promise<KeyringMemState> {
-    console.log("🌈🌈🌈 addNewAccount 🌈🌈🌈");
+    console.log('🌈🌈🌈 addNewAccount 🌈🌈🌈');
 
-    const primaryKeyring = this.#keyring.getKeyringsByType("HD Key Tree")[0];
+    const primaryKeyring = this.#keyring.getKeyringsByType('HD Key Tree')[0];
     /* istanbul ignore if */
     if (!primaryKeyring) {
-      throw new Error("No HD keyring found");
+      throw new Error('No HD keyring found');
     }
     const oldAccounts = await this.#keyring.getAccounts();
     await this.#keyring.addNewAccount(primaryKeyring);
@@ -244,12 +268,12 @@ export class KeyringController extends BaseController<
    * @returns Promise resolving to current state when the account is added.
    */
   async addNewAccountWithoutUpdate(): Promise<KeyringMemState> {
-    console.log("🌈🌈🌈 addNewAccountWithoutUpdate 🌈🌈🌈");
+    console.log('🌈🌈🌈 addNewAccountWithoutUpdate 🌈🌈🌈');
 
-    const primaryKeyring = this.#keyring.getKeyringsByType("HD Key Tree")[0];
+    const primaryKeyring = this.#keyring.getKeyringsByType('HD Key Tree')[0];
     /* istanbul ignore if */
     if (!primaryKeyring) {
-      throw new Error("No HD keyring found");
+      throw new Error('No HD keyring found');
     }
     await this.#keyring.addNewAccount(primaryKeyring);
     await this.verifySeedPhrase();
@@ -266,19 +290,19 @@ export class KeyringController extends BaseController<
    * @returns Promise resolving to the restored keychain object.
    */
   async createNewVaultAndRestore(password: string, seed: string | number[]) {
-    console.log("🌈🌈🌈 createNewVaultAndRestore 🌈🌈🌈");
-    console.log("🌈🌈🌈 seed: ", seed);
+    console.log('🌈🌈🌈 createNewVaultAndRestore 🌈🌈🌈');
+    console.log('🌈🌈🌈 seed: ', seed);
 
     const releaseLock = await this.mutex.acquire();
     if (!password || !password.length) {
-      throw new Error("Invalid password");
+      throw new Error('Invalid password');
     }
 
     try {
       this.updateIdentities([]);
       const vault = await this.#keyring.createNewVaultAndRestore(
         password,
-        seed
+        seed,
       );
 
       this.updateIdentities(await this.#keyring.getAccounts());
@@ -342,7 +366,7 @@ export class KeyringController extends BaseController<
     if (this.validatePassword(password)) {
       return this.#keyring.keyrings[0].mnemonic;
     }
-    throw new Error("Invalid password");
+    throw new Error('Invalid password');
   }
 
   /**
@@ -356,7 +380,7 @@ export class KeyringController extends BaseController<
     if (this.validatePassword(password)) {
       return this.#keyring.exportAccount(address);
     }
-    throw new Error("Invalid password");
+    throw new Error('Invalid password');
   }
 
   /**
@@ -378,14 +402,14 @@ export class KeyringController extends BaseController<
    */
   async importAccountWithStrategy(
     strategy: AccountImportStrategy,
-    args: any[]
+    args: any[],
   ): Promise<KeyringMemState> {
     let privateKey;
     switch (strategy) {
-      case "privateKey":
+      case 'privateKey':
         const [importedKey] = args;
         if (!importedKey) {
-          throw new Error("Cannot import an empty key.");
+          throw new Error('Cannot import an empty key.');
         }
         const prefixed = addHexPrefix(importedKey);
 
@@ -393,17 +417,17 @@ export class KeyringController extends BaseController<
         try {
           bufferedPrivateKey = toBuffer(prefixed);
         } catch {
-          throw new Error("Cannot import invalid private key.");
+          throw new Error('Cannot import invalid private key.');
         }
 
         /* istanbul ignore if */
         if (!isValidPrivate(bufferedPrivateKey)) {
-          throw new Error("Cannot import invalid private key.");
+          throw new Error('Cannot import invalid private key.');
         }
 
         privateKey = stripHexPrefix(prefixed);
         break;
-      case "json":
+      case 'json':
         let wallet;
         const [input, password] = args;
         try {
@@ -477,7 +501,7 @@ export class KeyringController extends BaseController<
    */
   async signTypedMessage(
     messageParams: TypedMessageParams,
-    version: SignTypedDataVersion
+    version: SignTypedDataVersion,
   ) {
     try {
       const address = normalizeAddress(messageParams.from);
@@ -486,13 +510,13 @@ export class KeyringController extends BaseController<
       if (
         qrAccounts.findIndex(
           (qrAddress: string) =>
-            qrAddress.toLowerCase() === address.toLowerCase()
+            qrAddress.toLowerCase() === address.toLowerCase(),
         ) !== -1
       ) {
         const messageParamsClone = { ...messageParams };
         if (
           version !== SignTypedDataVersion.V1 &&
-          typeof messageParamsClone.data === "string"
+          typeof messageParamsClone.data === 'string'
         ) {
           messageParamsClone.data = JSON.parse(messageParamsClone.data);
         }
@@ -549,13 +573,13 @@ export class KeyringController extends BaseController<
     contractAddr: string,
     fromAddr: string,
     toAddr: string,
-    amount: number
+    amount: number,
   ) {
     const tx = await this.#keyring.txTransferTRC20(
       contractAddr,
       fromAddr,
       toAddr,
-      amount
+      amount,
     );
     const signedTx = await this.#keyring.signTRC20Transaction(tx, fromAddr);
     return await this.broadcastTx(signedTx, fromAddr);
@@ -604,11 +628,11 @@ export class KeyringController extends BaseController<
    * @returns Promise resolving to contract information.
    */
   async getContract(contract: string) {
-    return await this.#keyring.getContract(this.selectedAddress , contract);
+    return await this.#keyring.getContract(this.selectedAddress, contract);
   }
 
   async getContractInfo(address: string, contract: string) {
-    return await this.#keyring.getContract(address , contract);
+    return await this.#keyring.getContract(address, contract);
   }
 
   /**
@@ -650,7 +674,7 @@ export class KeyringController extends BaseController<
    * @returns EventEmitter if listener added.
    */
   onLock(listener: () => void) {
-    return this.#keyring.on("lock", listener);
+    return this.#keyring.on('lock', listener);
   }
 
   /**
@@ -660,7 +684,7 @@ export class KeyringController extends BaseController<
    * @returns EventEmitter if listener added.
    */
   onUnlock(listener: () => void) {
-    return this.#keyring.on("unlock", listener);
+    return this.#keyring.on('unlock', listener);
   }
 
   /**
@@ -669,22 +693,22 @@ export class KeyringController extends BaseController<
    * @returns Whether the verification succeeds.
    */
   async verifySeedPhrase(): Promise<string> {
-    console.log("🌈🌈🌈 verifySeedPhrase 🌈🌈🌈");
+    console.log('🌈🌈🌈 verifySeedPhrase 🌈🌈🌈');
     const primaryKeyring = this.#keyring.getKeyringsByType(KeyringTypes.hd)[0];
     /* istanbul ignore if */
     if (!primaryKeyring) {
-      throw new Error("No HD keyring found.");
+      throw new Error('No HD keyring found.');
     }
 
     const seedWords = (await primaryKeyring.serialize()).mnemonic;
     const accounts = await primaryKeyring.getAccounts();
     /* istanbul ignore if */
     if (accounts.length === 0) {
-      throw new Error("Cannot verify an empty keyring.");
+      throw new Error('Cannot verify an empty keyring.');
     }
 
     const TestKeyringClass = this.#keyring.getKeyringClassForType(
-      KeyringTypes.hd
+      KeyringTypes.hd,
     );
     const testKeyring = new TestKeyringClass({
       mnemonic: seedWords,
@@ -693,13 +717,13 @@ export class KeyringController extends BaseController<
     const testAccounts = await testKeyring.getAccounts();
     /* istanbul ignore if */
     if (testAccounts.length !== accounts.length) {
-      throw new Error("Seed phrase imported incorrect number of accounts.");
+      throw new Error('Seed phrase imported incorrect number of accounts.');
     }
 
     testAccounts.forEach((account: string, i: number) => {
       /* istanbul ignore if */
       if (account.toLowerCase() !== accounts[i].toLowerCase()) {
-        throw new Error("Seed phrase imported different accounts.");
+        throw new Error('Seed phrase imported different accounts.');
       }
     });
 
@@ -724,8 +748,8 @@ export class KeyringController extends BaseController<
             index,
             type: keyring.type,
           };
-        }
-      )
+        },
+      ),
     );
     this.update({ keyrings: [...keyrings] });
     return this.#keyring.fullUpdate();
@@ -778,7 +802,7 @@ export class KeyringController extends BaseController<
 
   async submitQRSignature(
     requestId: string,
-    ethSignature: string
+    ethSignature: string,
   ): Promise<void> {
     (await this.getOrAddQRKeyring()).submitSignature(requestId, ethSignature);
   }
@@ -788,7 +812,7 @@ export class KeyringController extends BaseController<
   }
 
   async connectQRHardware(
-    page: number
+    page: number,
   ): Promise<{ balance: string; address: string; index: number }[]> {
     try {
       const keyring = await this.getOrAddQRKeyring();
@@ -806,7 +830,7 @@ export class KeyringController extends BaseController<
       return accounts.map((account: any) => {
         return {
           ...account,
-          balance: "0x0",
+          balance: '0x0',
         };
       });
     } catch (e) {

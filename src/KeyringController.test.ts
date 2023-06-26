@@ -16,7 +16,7 @@ import { MAINNET } from '@metamask/controller-utils';
 import MockEncryptor from '../tests/mocks/mockEncryptor';
 import {
   AccountImportStrategy,
-  Keyring,
+  TronKeyring,
   KeyringConfig,
   KeyringController,
   KeyringTypes,

@@ -1,7 +1,7 @@
-import { MetaMaskKeyring as QRKeyring, IKeyringState as IQRKeyringState } from "@keystonehq/metamask-airgapped-keyring";
-import { BaseController, BaseConfig, BaseState, Listener } from "@metamask/base-controller";
-import { PreferencesController } from "@metamask/preferences-controller";
-import { PersonalMessageParams, TypedMessageParams } from "@metamask/message-manager";
+import { MetaMaskKeyring as QRKeyring, IKeyringState as IQRKeyringState } from '@keystonehq/metamask-airgapped-keyring';
+import { BaseController, BaseConfig, BaseState, Listener } from '@metamask/base-controller';
+import { PreferencesController } from '@metamask/preferences-controller';
+import { PersonalMessageParams, TypedMessageParams } from '@metamask/message-manager';
 /**
  * Available keyring types
  */
@@ -121,14 +121,16 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      * @param config - Initial options used to configure this controller.
      * @param state - Initial state to set on this controller.
      */
-    constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, setAccountLabel, }: {
-        removeIdentity: PreferencesController["removeIdentity"];
-        syncIdentities: PreferencesController["syncIdentities"];
-        updateIdentities: PreferencesController["updateIdentities"];
-        setSelectedAddress: PreferencesController["setSelectedAddress"];
-        setAccountLabel?: PreferencesController["setAccountLabel"];
+    constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, setAccountLabel, defaultNetwork, }: {
+        removeIdentity: PreferencesController['removeIdentity'];
+        syncIdentities: PreferencesController['syncIdentities'];
+        updateIdentities: PreferencesController['updateIdentities'];
+        setSelectedAddress: PreferencesController['setSelectedAddress'];
+        setAccountLabel?: PreferencesController['setAccountLabel'];
+        defaultNetwork?: string;
     }, config?: Partial<KeyringConfig>, state?: Partial<KeyringState>);
     updateSelectedAddress(selectedAddr: string): void;
+    switchNetwork(chainId: string): void;
     /**
      * Adds a new account to the default (first) HD seed phrase keyring.
      *
