@@ -30,7 +30,11 @@ import {
   PersonalMessageParams,
   TypedMessageParams,
 } from '@metamask/message-manager';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
+import {
+  toChecksumHexAddress,
+  isTRX,
+  ListRPCURL,
+} from '@metamask/controller-utils';
 
 const TronKeyring = require('tron-keyring-controller');
 const ETHKeyring = require('eth-keyring-controller');
@@ -93,6 +97,7 @@ export interface KeyringMemState extends BaseState {
 export interface KeyringConfig extends BaseConfig {
   encryptor?: any;
   keyringTypes?: any[];
+  chainId: string;
 }
 
 /**
@@ -169,6 +174,7 @@ export class KeyringController extends BaseController<
   #keyring: any;
   #keyringSwitcher: IKeyring = {};
   selectedAddress: string = '';
+  currentRpcTarget: string = '';
 
   /**
    * Creates a KeyringController instance.
@@ -202,12 +208,14 @@ export class KeyringController extends BaseController<
     state?: Partial<KeyringState>,
   ) {
     super(config, state);
+
     const keyringConfig = Object.assign({ initState: state }, config);
     // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
     this.#keyringSwitcher = {
       [ETH]: new ETHKeyring(keyringConfig),
       [TRX]: new TronKeyring(keyringConfig),
     };
+    // Default TRX
     const network: string = defaultNetwork || TRX;
     this.#keyring = this.#keyringSwitcher[network];
 
@@ -230,8 +238,14 @@ export class KeyringController extends BaseController<
   }
 
   switchNetwork(chainId: string) {
-    // this.#keyring = isTRX(chainId)
-    this.#keyring = chainId === '3448148188' ? this.#keyringSwitcher[TRX] : this.#keyringSwitcher[ETH];
+    // TRX network
+    if (isTRX(chainId)) {
+      this.currentRpcTarget = ListRPCURL[chainId];
+      this.#keyring = this.#keyringSwitcher[TRX];
+    } else {
+      // ETH network
+      this.#keyring = this.#keyringSwitcher[ETH];
+    }
   }
 
   /**

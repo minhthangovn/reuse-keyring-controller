@@ -56,6 +56,7 @@ export interface KeyringMemState extends BaseState {
 export interface KeyringConfig extends BaseConfig {
     encryptor?: any;
     keyringTypes?: any[];
+    chainId: string;
 }
 /**
  * @type Keyring
@@ -109,6 +110,7 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
     private setSelectedAddress;
     private setAccountLabel?;
     selectedAddress: string;
+    currentRpcTarget: string;
     /**
      * Creates a KeyringController instance.
      *

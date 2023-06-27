@@ -118,12 +118,14 @@ class KeyringController extends base_controller_1.BaseController {
         _KeyringController_keyring.set(this, void 0);
         _KeyringController_keyringSwitcher.set(this, {});
         this.selectedAddress = '';
+        this.currentRpcTarget = '';
         const keyringConfig = Object.assign({ initState: state }, config);
         // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
         __classPrivateFieldSet(this, _KeyringController_keyringSwitcher, {
             [ETH]: new ETHKeyring(keyringConfig),
             [TRX]: new TronKeyring(keyringConfig),
         }, "f");
+        // Default TRX
         const network = defaultNetwork || TRX;
         __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[network], "f");
         this.defaultState = Object.assign(Object.assign({}, __classPrivateFieldGet(this, _KeyringController_keyring, "f").store.getState()), { keyrings: [] });
@@ -140,8 +142,15 @@ class KeyringController extends base_controller_1.BaseController {
         this.setSelectedAddress(selectedAddr);
     }
     switchNetwork(chainId) {
-        // this.#keyring = isTRX(chainId)
-        __classPrivateFieldSet(this, _KeyringController_keyring, chainId === '3448148188' ? __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[TRX] : __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[ETH], "f");
+        // TRX network
+        if ((0, controller_utils_1.isTRX)(chainId)) {
+            this.currentRpcTarget = controller_utils_1.ListRPCURL[chainId];
+            __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[TRX], "f");
+        }
+        else {
+            // ETH network
+            __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[ETH], "f");
+        }
     }
     /**
      * Adds a new account to the default (first) HD seed phrase keyring.
