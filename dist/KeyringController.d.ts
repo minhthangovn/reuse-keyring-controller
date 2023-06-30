@@ -108,6 +108,7 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
     private syncIdentities;
     private updateIdentities;
     private setSelectedAddress;
+    private getSelectedAddress;
     private setAccountLabel?;
     selectedAddress: string;
     currentRpcTarget: string;
@@ -123,16 +124,17 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      * @param config - Initial options used to configure this controller.
      * @param state - Initial state to set on this controller.
      */
-    constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, setAccountLabel, defaultNetwork, }: {
+    constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, getSelectedAddress, setAccountLabel, defaultNetwork, }: {
         removeIdentity: PreferencesController['removeIdentity'];
         syncIdentities: PreferencesController['syncIdentities'];
         updateIdentities: PreferencesController['updateIdentities'];
         setSelectedAddress: PreferencesController['setSelectedAddress'];
+        getSelectedAddress: PreferencesController['getSelectedAddress'];
         setAccountLabel?: PreferencesController['setAccountLabel'];
         defaultNetwork?: string;
     }, config?: Partial<KeyringConfig>, state?: Partial<KeyringState>);
     updateSelectedAddress(selectedAddr: string): void;
-    switchNetwork(chainId: string): void;
+    switchNetwork(chainId: string): Promise<void>;
     /**
      * Adds a new account to the default (first) HD seed phrase keyring.
      *

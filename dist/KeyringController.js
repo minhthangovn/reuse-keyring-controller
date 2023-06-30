@@ -107,7 +107,7 @@ class KeyringController extends base_controller_1.BaseController {
      * @param config - Initial options used to configure this controller.
      * @param state - Initial state to set on this controller.
      */
-    constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, setAccountLabel, defaultNetwork, }, config, state) {
+    constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, getSelectedAddress, setAccountLabel, defaultNetwork, }, config, state) {
         super(config, state);
         this.mutex = new async_mutex_1.Mutex();
         /**
@@ -133,24 +133,26 @@ class KeyringController extends base_controller_1.BaseController {
         this.syncIdentities = syncIdentities;
         this.updateIdentities = updateIdentities;
         this.setSelectedAddress = setSelectedAddress;
+        this.getSelectedAddress = getSelectedAddress;
         this.setAccountLabel = setAccountLabel;
         this.initialize();
         this.fullUpdate();
     }
     updateSelectedAddress(selectedAddr) {
-        this.selectedAddress = selectedAddr;
         this.setSelectedAddress(selectedAddr);
     }
     switchNetwork(chainId) {
-        // TRX network
-        if ((0, controller_utils_1.isTRX)(chainId)) {
-            this.currentRpcTarget = controller_utils_1.ListRPCURL[chainId];
-            __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[TRX], "f");
-        }
-        else {
-            // ETH network
-            __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[ETH], "f");
-        }
+        return __awaiter(this, void 0, void 0, function* () {
+            // TRX network
+            if ((0, controller_utils_1.isTRX)(chainId)) {
+                this.currentRpcTarget = controller_utils_1.ListRPCURL[chainId];
+                __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[TRX], "f");
+            }
+            else {
+                // ETH network
+                __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[ETH], "f");
+            }
+        });
     }
     /**
      * Adds a new account to the default (first) HD seed phrase keyring.
@@ -516,7 +518,7 @@ class KeyringController extends base_controller_1.BaseController {
      */
     getContract(contract) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getContract(this.selectedAddress, contract);
+            return yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getContract(this.getSelectedAddress(), contract);
         });
     }
     getContractInfo(address, contract) {
@@ -532,7 +534,10 @@ class KeyringController extends base_controller_1.BaseController {
      */
     submitPassword(password) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").submitPassword(password);
+            yield Promise.all([
+                __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[TRX].submitPassword(password),
+                __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[ETH].submitPassword(password),
+            ]);
             const accounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
             yield this.syncIdentities(accounts);
             return this.fullUpdate();

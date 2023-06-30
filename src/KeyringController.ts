@@ -168,6 +168,8 @@ export class KeyringController extends BaseController<
 
   private setSelectedAddress: PreferencesController['setSelectedAddress'];
 
+  private getSelectedAddress: PreferencesController['getSelectedAddress'];
+
   private setAccountLabel?: PreferencesController['setAccountLabel'];
 
   // TronKeyring or ETHKeyring
@@ -194,6 +196,7 @@ export class KeyringController extends BaseController<
       syncIdentities,
       updateIdentities,
       setSelectedAddress,
+      getSelectedAddress,
       setAccountLabel,
       defaultNetwork,
     }: {
@@ -201,6 +204,7 @@ export class KeyringController extends BaseController<
       syncIdentities: PreferencesController['syncIdentities'];
       updateIdentities: PreferencesController['updateIdentities'];
       setSelectedAddress: PreferencesController['setSelectedAddress'];
+      getSelectedAddress: PreferencesController['getSelectedAddress'];
       setAccountLabel?: PreferencesController['setAccountLabel'];
       defaultNetwork?: string;
     },
@@ -227,17 +231,17 @@ export class KeyringController extends BaseController<
     this.syncIdentities = syncIdentities;
     this.updateIdentities = updateIdentities;
     this.setSelectedAddress = setSelectedAddress;
+    this.getSelectedAddress = getSelectedAddress;
     this.setAccountLabel = setAccountLabel;
     this.initialize();
     this.fullUpdate();
   }
 
   updateSelectedAddress(selectedAddr: string) {
-    this.selectedAddress = selectedAddr;
     this.setSelectedAddress(selectedAddr);
   }
 
-  switchNetwork(chainId: string) {
+  async switchNetwork(chainId: string) {
     // TRX network
     if (isTRX(chainId)) {
       this.currentRpcTarget = ListRPCURL[chainId];
@@ -642,7 +646,7 @@ export class KeyringController extends BaseController<
    * @returns Promise resolving to contract information.
    */
   async getContract(contract: string) {
-    return await this.#keyring.getContract(this.selectedAddress, contract);
+    return await this.#keyring.getContract(this.getSelectedAddress(), contract);
   }
 
   async getContractInfo(address: string, contract: string) {
@@ -656,7 +660,11 @@ export class KeyringController extends BaseController<
    * @returns Promise resolving to the current state.
    */
   async submitPassword(password: string): Promise<KeyringMemState> {
-    await this.#keyring.submitPassword(password);
+    await Promise.all([
+      this.#keyringSwitcher[TRX].submitPassword(password),
+      this.#keyringSwitcher[ETH].submitPassword(password),
+    ]);
+
     const accounts = await this.#keyring.getAccounts();
     await this.syncIdentities(accounts);
     return this.fullUpdate();
