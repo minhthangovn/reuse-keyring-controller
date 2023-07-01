@@ -31,16 +31,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _KeyringController_keyring, _KeyringController_keyringSwitcher;
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -119,15 +119,11 @@ class KeyringController extends base_controller_1.BaseController {
         _KeyringController_keyringSwitcher.set(this, {});
         this.selectedAddress = '';
         this.currentRpcTarget = '';
+        this.currentNetwork = '';
+        this.currentNetwork = defaultNetwork || ETH;
         const keyringConfig = Object.assign({ initState: state }, config);
         // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
-        __classPrivateFieldSet(this, _KeyringController_keyringSwitcher, {
-            [ETH]: new ETHKeyring(keyringConfig),
-            [TRX]: new TronKeyring(keyringConfig),
-        }, "f");
-        // Default TRX
-        const network = defaultNetwork || TRX;
-        __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[network], "f");
+        this.getSwitcherKeyring(keyringConfig);
         this.defaultState = Object.assign(Object.assign({}, __classPrivateFieldGet(this, _KeyringController_keyring, "f").store.getState()), { keyrings: [] });
         this.removeIdentity = removeIdentity;
         this.syncIdentities = syncIdentities;
@@ -138,8 +134,19 @@ class KeyringController extends base_controller_1.BaseController {
         this.initialize();
         this.fullUpdate();
     }
-    updateSelectedAddress(selectedAddr) {
-        this.setSelectedAddress(selectedAddr);
+    getSwitcherKeyring(keyringConfig) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const [ethkeyring, trxkeyring] = yield Promise.all([
+                new ETHKeyring(keyringConfig),
+                new TronKeyring(keyringConfig),
+            ]);
+            __classPrivateFieldSet(this, _KeyringController_keyringSwitcher, {
+                [ETH]: ethkeyring,
+                [TRX]: trxkeyring,
+            }, "f");
+            // Default TRX
+            __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[this.currentNetwork], "f");
+        });
     }
     switchNetwork(chainId) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -153,6 +160,9 @@ class KeyringController extends base_controller_1.BaseController {
                 __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[ETH], "f");
             }
         });
+    }
+    updateSelectedAddress(selectedAddr) {
+        this.setSelectedAddress(selectedAddr);
     }
     /**
      * Adds a new account to the default (first) HD seed phrase keyring.
@@ -217,7 +227,11 @@ class KeyringController extends base_controller_1.BaseController {
             }
             try {
                 this.updateIdentities([]);
-                const vault = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").createNewVaultAndRestore(password, seed);
+                // const vault = await this.#keyring.createNewVaultAndRestore(
+                //   password,
+                //   seed,
+                // );
+                const vault = yield this.createNewVaultAndRestoreSwitcher(password, seed);
                 this.updateIdentities(yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
                 this.fullUpdate();
                 // console.log("🌈🌈🌈 this.#keyring.getAccounts(): ", this.#keyring.getAccounts());
@@ -231,6 +245,18 @@ class KeyringController extends base_controller_1.BaseController {
             }
         });
     }
+    createNewVaultAndRestoreSwitcher(password, seed) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.currentNetwork == ETH) {
+                yield __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[TRX].createNewVaultAndRestore(password, seed);
+            }
+            else {
+                yield __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[ETH].createNewVaultAndRestore(password, seed);
+            }
+            const vault = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").createNewVaultAndRestore(password, seed);
+            return vault;
+        });
+    }
     /**
      * Create a new primary keychain and wipe any previous keychains.
      *
@@ -241,7 +267,8 @@ class KeyringController extends base_controller_1.BaseController {
         return __awaiter(this, void 0, void 0, function* () {
             const releaseLock = yield this.mutex.acquire();
             try {
-                const vault = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").createNewVaultAndKeychain(password);
+                // const vault = await this.#keyring.createNewVaultAndKeychain(password);
+                const vault = yield this.createNewVaultAndKeychainSwitcher(password);
                 this.updateIdentities(yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
                 this.fullUpdate();
                 return vault;
@@ -249,6 +276,18 @@ class KeyringController extends base_controller_1.BaseController {
             finally {
                 releaseLock();
             }
+        });
+    }
+    createNewVaultAndKeychainSwitcher(password) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.currentNetwork == ETH) {
+                yield __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[TRX].createNewVaultAndKeychain(password);
+            }
+            else {
+                yield __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[ETH].createNewVaultAndKeychain(password);
+            }
+            const vault = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").createNewVaultAndKeychain(password);
+            return vault;
         });
     }
     /**

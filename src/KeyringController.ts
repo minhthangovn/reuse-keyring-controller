@@ -177,6 +177,7 @@ export class KeyringController extends BaseController<
   #keyringSwitcher: IKeyring = {};
   selectedAddress: string = '';
   currentRpcTarget: string = '';
+  currentNetwork: string = '';
 
   /**
    * Creates a KeyringController instance.
@@ -212,16 +213,11 @@ export class KeyringController extends BaseController<
     state?: Partial<KeyringState>,
   ) {
     super(config, state);
+    this.currentNetwork = defaultNetwork || ETH;
 
     const keyringConfig = Object.assign({ initState: state }, config);
     // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
-    this.#keyringSwitcher = {
-      [ETH]: new ETHKeyring(keyringConfig),
-      [TRX]: new TronKeyring(keyringConfig),
-    };
-    // Default TRX
-    const network: string = defaultNetwork || TRX;
-    this.#keyring = this.#keyringSwitcher[network];
+    this.getSwitcherKeyring(keyringConfig);
 
     this.defaultState = {
       ...this.#keyring.store.getState(),
@@ -237,8 +233,18 @@ export class KeyringController extends BaseController<
     this.fullUpdate();
   }
 
-  updateSelectedAddress(selectedAddr: string) {
-    this.setSelectedAddress(selectedAddr);
+  async getSwitcherKeyring(keyringConfig: any) {
+    const [ethkeyring, trxkeyring] = await Promise.all([
+      new ETHKeyring(keyringConfig),
+      new TronKeyring(keyringConfig),
+    ]);
+
+    this.#keyringSwitcher = {
+      [ETH]: ethkeyring,
+      [TRX]: trxkeyring,
+    };
+    // Default TRX
+    this.#keyring = this.#keyringSwitcher[this.currentNetwork];
   }
 
   async switchNetwork(chainId: string) {
@@ -250,6 +256,10 @@ export class KeyringController extends BaseController<
       // ETH network
       this.#keyring = this.#keyringSwitcher[ETH];
     }
+  }
+
+  updateSelectedAddress(selectedAddr: string) {
+    this.setSelectedAddress(selectedAddr);
   }
 
   /**
@@ -318,10 +328,13 @@ export class KeyringController extends BaseController<
 
     try {
       this.updateIdentities([]);
-      const vault = await this.#keyring.createNewVaultAndRestore(
-        password,
-        seed,
-      );
+
+      // const vault = await this.#keyring.createNewVaultAndRestore(
+      //   password,
+      //   seed,
+      // );
+
+      const vault = await this.createNewVaultAndRestoreSwitcher(password, seed);
 
       this.updateIdentities(await this.#keyring.getAccounts());
       this.fullUpdate();
@@ -337,6 +350,20 @@ export class KeyringController extends BaseController<
     }
   }
 
+  async createNewVaultAndRestoreSwitcher(
+    password: string,
+    seed: string | number[],
+  ) {
+    if (this.currentNetwork == ETH) {
+      await this.#keyringSwitcher[TRX].createNewVaultAndRestore(password, seed);
+    } else {
+      await this.#keyringSwitcher[ETH].createNewVaultAndRestore(password, seed);
+    }
+    const vault = await this.#keyring.createNewVaultAndRestore(password, seed);
+
+    return vault;
+  }
+
   /**
    * Create a new primary keychain and wipe any previous keychains.
    *
@@ -346,13 +373,25 @@ export class KeyringController extends BaseController<
   async createNewVaultAndKeychain(password: string) {
     const releaseLock = await this.mutex.acquire();
     try {
-      const vault = await this.#keyring.createNewVaultAndKeychain(password);
+      // const vault = await this.#keyring.createNewVaultAndKeychain(password);
+      const vault = await this.createNewVaultAndKeychainSwitcher(password);
       this.updateIdentities(await this.#keyring.getAccounts());
       this.fullUpdate();
       return vault;
     } finally {
       releaseLock();
     }
+  }
+
+  async createNewVaultAndKeychainSwitcher(password: string) {
+    if (this.currentNetwork == ETH) {
+      await this.#keyringSwitcher[TRX].createNewVaultAndKeychain(password);
+    } else {
+      await this.#keyringSwitcher[ETH].createNewVaultAndKeychain(password);
+    }
+    const vault = await this.#keyring.createNewVaultAndKeychain(password);
+
+    return vault;
   }
 
   /**

@@ -112,6 +112,7 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
     private setAccountLabel?;
     selectedAddress: string;
     currentRpcTarget: string;
+    currentNetwork: string;
     /**
      * Creates a KeyringController instance.
      *
@@ -133,8 +134,9 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
         setAccountLabel?: PreferencesController['setAccountLabel'];
         defaultNetwork?: string;
     }, config?: Partial<KeyringConfig>, state?: Partial<KeyringState>);
-    updateSelectedAddress(selectedAddr: string): void;
+    getSwitcherKeyring(keyringConfig: any): Promise<void>;
     switchNetwork(chainId: string): Promise<void>;
+    updateSelectedAddress(selectedAddr: string): void;
     /**
      * Adds a new account to the default (first) HD seed phrase keyring.
      *
@@ -157,6 +159,7 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      * @returns Promise resolving to the restored keychain object.
      */
     createNewVaultAndRestore(password: string, seed: string | number[]): Promise<any>;
+    createNewVaultAndRestoreSwitcher(password: string, seed: string | number[]): Promise<any>;
     /**
      * Create a new primary keychain and wipe any previous keychains.
      *
@@ -164,6 +167,7 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      * @returns Newly-created keychain object.
      */
     createNewVaultAndKeychain(password: string): Promise<any>;
+    createNewVaultAndKeychainSwitcher(password: string): Promise<any>;
     /**
      * Method to validate a password against the password from the keyring.
      *
