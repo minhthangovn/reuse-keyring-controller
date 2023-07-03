@@ -42,7 +42,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _KeyringController_keyring, _KeyringController_keyringSwitcher;
+var _KeyringController_keyring;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.KeyringController = exports.SignTypedDataVersion = exports.AccountImportStrategy = exports.KeyringTypes = void 0;
 const ethereumjs_util_1 = require("ethereumjs-util");
@@ -107,7 +107,7 @@ class KeyringController extends base_controller_1.BaseController {
      * @param config - Initial options used to configure this controller.
      * @param state - Initial state to set on this controller.
      */
-    constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, getSelectedAddress, setAccountLabel, defaultNetwork, }, config, state) {
+    constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, getSelectedAddress, setAccountLabel, network, }, config, state) {
         super(config, state);
         this.mutex = new async_mutex_1.Mutex();
         /**
@@ -116,22 +116,22 @@ class KeyringController extends base_controller_1.BaseController {
         this.name = 'KeyringController';
         // TronKeyring or ETHKeyring
         _KeyringController_keyring.set(this, void 0);
-        _KeyringController_keyringSwitcher.set(this, {});
         this.selectedAddress = '';
         this.currentRpcTarget = '';
         this.currentNetwork = '';
         this.keyringConfig = {};
-        this.currentNetwork = defaultNetwork || ETH;
+        this.currentNetwork = network || ETH;
+        this.name = this.name + this.currentNetwork;
         const keyringConfig = Object.assign({ initState: state }, config);
         // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
-        const ethkeyring = new ETHKeyring(keyringConfig);
-        const trxkeyring = new TronKeyring(keyringConfig);
-        __classPrivateFieldSet(this, _KeyringController_keyringSwitcher, {
-            [ETH]: ethkeyring,
-            [TRX]: trxkeyring,
-        }, "f");
-        // Default TRX
-        __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[this.currentNetwork], "f");
+        switch (this.currentNetwork) {
+            case ETH:
+                __classPrivateFieldSet(this, _KeyringController_keyring, new ETHKeyring(keyringConfig), "f");
+                break;
+            case TRX:
+                __classPrivateFieldSet(this, _KeyringController_keyring, new TronKeyring(keyringConfig), "f");
+                break;
+        }
         // await this.getSwitcherKeyring(this.keyringConfig);
         this.defaultState = Object.assign(Object.assign({}, __classPrivateFieldGet(this, _KeyringController_keyring, "f").store.getState()), { keyrings: [] });
         this.removeIdentity = removeIdentity;
@@ -142,21 +142,6 @@ class KeyringController extends base_controller_1.BaseController {
         this.setAccountLabel = setAccountLabel;
         this.initialize();
         this.fullUpdate();
-    }
-    // async init(): Promise<void> {}
-    // async getSwitcherKeyring(keyringConfig: any) {}
-    switchNetwork(chainId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            // TRX network
-            if ((0, controller_utils_1.isTRX)(chainId)) {
-                this.currentRpcTarget = controller_utils_1.ListRPCURL[chainId];
-                __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[TRX], "f");
-            }
-            else {
-                // ETH network
-                __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[ETH], "f");
-            }
-        });
     }
     updateSelectedAddress(selectedAddr) {
         this.setSelectedAddress(selectedAddr);
@@ -224,11 +209,7 @@ class KeyringController extends base_controller_1.BaseController {
             }
             try {
                 this.updateIdentities([]);
-                // const vault = await this.#keyring.createNewVaultAndRestore(
-                //   password,
-                //   seed,
-                // );
-                const vault = yield this.createNewVaultAndRestoreSwitcher(password, seed);
+                const vault = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").createNewVaultAndRestore(password, seed);
                 this.updateIdentities(yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
                 this.fullUpdate();
                 // console.log("🌈🌈🌈 this.#keyring.getAccounts(): ", this.#keyring.getAccounts());
@@ -242,18 +223,6 @@ class KeyringController extends base_controller_1.BaseController {
             }
         });
     }
-    createNewVaultAndRestoreSwitcher(password, seed) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.currentNetwork == ETH) {
-                yield __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[TRX].createNewVaultAndRestore(password, seed);
-            }
-            else {
-                yield __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[ETH].createNewVaultAndRestore(password, seed);
-            }
-            const vault = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").createNewVaultAndRestore(password, seed);
-            return vault;
-        });
-    }
     /**
      * Create a new primary keychain and wipe any previous keychains.
      *
@@ -264,8 +233,7 @@ class KeyringController extends base_controller_1.BaseController {
         return __awaiter(this, void 0, void 0, function* () {
             const releaseLock = yield this.mutex.acquire();
             try {
-                // const vault = await this.#keyring.createNewVaultAndKeychain(password);
-                const vault = yield this.createNewVaultAndKeychainSwitcher(password);
+                const vault = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").createNewVaultAndKeychain(password);
                 this.updateIdentities(yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
                 this.fullUpdate();
                 return vault;
@@ -273,18 +241,6 @@ class KeyringController extends base_controller_1.BaseController {
             finally {
                 releaseLock();
             }
-        });
-    }
-    createNewVaultAndKeychainSwitcher(password) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.currentNetwork == ETH) {
-                yield __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[TRX].createNewVaultAndKeychain(password);
-            }
-            else {
-                yield __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[ETH].createNewVaultAndKeychain(password);
-            }
-            const vault = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").createNewVaultAndKeychain(password);
-            return vault;
         });
     }
     /**
@@ -570,10 +526,7 @@ class KeyringController extends base_controller_1.BaseController {
      */
     submitPassword(password) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield Promise.all([
-                __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[TRX].submitPassword(password),
-                __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[ETH].submitPassword(password),
-            ]);
+            __classPrivateFieldGet(this, _KeyringController_keyring, "f").submitPassword(password);
             const accounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
             yield this.syncIdentities(accounts);
             return this.fullUpdate();
@@ -798,6 +751,6 @@ class KeyringController extends base_controller_1.BaseController {
     }
 }
 exports.KeyringController = KeyringController;
-_KeyringController_keyring = new WeakMap(), _KeyringController_keyringSwitcher = new WeakMap();
+_KeyringController_keyring = new WeakMap();
 exports.default = KeyringController;
 //# sourceMappingURL=KeyringController.js.map

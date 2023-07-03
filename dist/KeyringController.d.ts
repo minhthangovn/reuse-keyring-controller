@@ -126,16 +126,15 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      * @param config - Initial options used to configure this controller.
      * @param state - Initial state to set on this controller.
      */
-    constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, getSelectedAddress, setAccountLabel, defaultNetwork, }: {
+    constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, getSelectedAddress, setAccountLabel, network, }: {
         removeIdentity: PreferencesController['removeIdentity'];
         syncIdentities: PreferencesController['syncIdentities'];
         updateIdentities: PreferencesController['updateIdentities'];
         setSelectedAddress: PreferencesController['setSelectedAddress'];
         getSelectedAddress: PreferencesController['getSelectedAddress'];
         setAccountLabel?: PreferencesController['setAccountLabel'];
-        defaultNetwork?: string;
+        network?: string;
     }, config?: Partial<KeyringConfig>, state?: Partial<KeyringState>);
-    switchNetwork(chainId: string): Promise<void>;
     updateSelectedAddress(selectedAddr: string): void;
     /**
      * Adds a new account to the default (first) HD seed phrase keyring.
@@ -159,7 +158,6 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      * @returns Promise resolving to the restored keychain object.
      */
     createNewVaultAndRestore(password: string, seed: string | number[]): Promise<any>;
-    createNewVaultAndRestoreSwitcher(password: string, seed: string | number[]): Promise<any>;
     /**
      * Create a new primary keychain and wipe any previous keychains.
      *
@@ -167,7 +165,6 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      * @returns Newly-created keychain object.
      */
     createNewVaultAndKeychain(password: string): Promise<any>;
-    createNewVaultAndKeychainSwitcher(password: string): Promise<any>;
     /**
      * Method to validate a password against the password from the keyring.
      *
