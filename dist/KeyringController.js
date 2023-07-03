@@ -120,11 +120,10 @@ class KeyringController extends base_controller_1.BaseController {
         this.selectedAddress = '';
         this.currentRpcTarget = '';
         this.currentNetwork = '';
+        this.keyringConfig = {};
         this.currentNetwork = defaultNetwork || ETH;
-        const keyringConfig = Object.assign({ initState: state }, config);
+        this.keyringConfig = Object.assign({ initState: state }, config);
         // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
-        this.getSwitcherKeyring(keyringConfig);
-        this.defaultState = Object.assign(Object.assign({}, __classPrivateFieldGet(this, _KeyringController_keyring, "f").store.getState()), { keyrings: [] });
         this.removeIdentity = removeIdentity;
         this.syncIdentities = syncIdentities;
         this.updateIdentities = updateIdentities;
@@ -132,7 +131,13 @@ class KeyringController extends base_controller_1.BaseController {
         this.getSelectedAddress = getSelectedAddress;
         this.setAccountLabel = setAccountLabel;
         this.initialize();
-        this.fullUpdate();
+    }
+    init() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.getSwitcherKeyring(this.keyringConfig);
+            this.defaultState = Object.assign(Object.assign({}, __classPrivateFieldGet(this, _KeyringController_keyring, "f").store.getState()), { keyrings: [] });
+            yield this.fullUpdate();
+        });
     }
     getSwitcherKeyring(keyringConfig) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -145,7 +150,7 @@ class KeyringController extends base_controller_1.BaseController {
                 [TRX]: trxkeyring,
             }, "f");
             // Default TRX
-            __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[this.currentNetwork], "f");
+            __classPrivateFieldSet(this, _KeyringController_keyring, yield __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[this.currentNetwork], "f");
         });
     }
     switchNetwork(chainId) {

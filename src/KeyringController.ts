@@ -178,7 +178,7 @@ export class KeyringController extends BaseController<
   selectedAddress: string = '';
   currentRpcTarget: string = '';
   currentNetwork: string = '';
-
+  keyringConfig: any = {};
   /**
    * Creates a KeyringController instance.
    *
@@ -215,14 +215,9 @@ export class KeyringController extends BaseController<
     super(config, state);
     this.currentNetwork = defaultNetwork || ETH;
 
-    const keyringConfig = Object.assign({ initState: state }, config);
+    this.keyringConfig = Object.assign({ initState: state }, config);
     // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
-    this.getSwitcherKeyring(keyringConfig);
 
-    this.defaultState = {
-      ...this.#keyring.store.getState(),
-      keyrings: [],
-    };
     this.removeIdentity = removeIdentity;
     this.syncIdentities = syncIdentities;
     this.updateIdentities = updateIdentities;
@@ -230,7 +225,15 @@ export class KeyringController extends BaseController<
     this.getSelectedAddress = getSelectedAddress;
     this.setAccountLabel = setAccountLabel;
     this.initialize();
-    this.fullUpdate();
+  }
+
+  async init(): Promise<void> {
+    await this.getSwitcherKeyring(this.keyringConfig);
+    this.defaultState = {
+      ...this.#keyring.store.getState(),
+      keyrings: [],
+    };
+    await this.fullUpdate();
   }
 
   async getSwitcherKeyring(keyringConfig: any) {
@@ -243,8 +246,9 @@ export class KeyringController extends BaseController<
       [ETH]: ethkeyring,
       [TRX]: trxkeyring,
     };
+
     // Default TRX
-    this.#keyring = this.#keyringSwitcher[this.currentNetwork];
+    this.#keyring = await this.#keyringSwitcher[this.currentNetwork];
   }
 
   async switchNetwork(chainId: string) {
