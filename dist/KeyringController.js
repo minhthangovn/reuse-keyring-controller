@@ -31,16 +31,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _KeyringController_keyring, _KeyringController_keyringSwitcher;
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -122,8 +122,18 @@ class KeyringController extends base_controller_1.BaseController {
         this.currentNetwork = '';
         this.keyringConfig = {};
         this.currentNetwork = defaultNetwork || ETH;
-        this.keyringConfig = Object.assign({ initState: state }, config);
+        const keyringConfig = Object.assign({ initState: state }, config);
         // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
+        const ethkeyring = new ETHKeyring(keyringConfig);
+        const trxkeyring = new TronKeyring(keyringConfig);
+        __classPrivateFieldSet(this, _KeyringController_keyringSwitcher, {
+            [ETH]: ethkeyring,
+            [TRX]: trxkeyring,
+        }, "f");
+        // Default TRX
+        __classPrivateFieldSet(this, _KeyringController_keyring, __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[this.currentNetwork], "f");
+        // await this.getSwitcherKeyring(this.keyringConfig);
+        this.defaultState = Object.assign(Object.assign({}, __classPrivateFieldGet(this, _KeyringController_keyring, "f").store.getState()), { keyrings: [] });
         this.removeIdentity = removeIdentity;
         this.syncIdentities = syncIdentities;
         this.updateIdentities = updateIdentities;
@@ -131,28 +141,10 @@ class KeyringController extends base_controller_1.BaseController {
         this.getSelectedAddress = getSelectedAddress;
         this.setAccountLabel = setAccountLabel;
         this.initialize();
+        this.fullUpdate();
     }
-    init() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.getSwitcherKeyring(this.keyringConfig);
-            this.defaultState = Object.assign(Object.assign({}, __classPrivateFieldGet(this, _KeyringController_keyring, "f").store.getState()), { keyrings: [] });
-            yield this.fullUpdate();
-        });
-    }
-    getSwitcherKeyring(keyringConfig) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const [ethkeyring, trxkeyring] = yield Promise.all([
-                new ETHKeyring(keyringConfig),
-                new TronKeyring(keyringConfig),
-            ]);
-            __classPrivateFieldSet(this, _KeyringController_keyringSwitcher, {
-                [ETH]: ethkeyring,
-                [TRX]: trxkeyring,
-            }, "f");
-            // Default TRX
-            __classPrivateFieldSet(this, _KeyringController_keyring, yield __classPrivateFieldGet(this, _KeyringController_keyringSwitcher, "f")[this.currentNetwork], "f");
-        });
-    }
+    // async init(): Promise<void> {}
+    // async getSwitcherKeyring(keyringConfig: any) {}
     switchNetwork(chainId) {
         return __awaiter(this, void 0, void 0, function* () {
             // TRX network

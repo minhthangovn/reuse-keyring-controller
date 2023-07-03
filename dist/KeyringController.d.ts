@@ -135,8 +135,6 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
         setAccountLabel?: PreferencesController['setAccountLabel'];
         defaultNetwork?: string;
     }, config?: Partial<KeyringConfig>, state?: Partial<KeyringState>);
-    init(): Promise<void>;
-    getSwitcherKeyring(keyringConfig: any): Promise<void>;
     switchNetwork(chainId: string): Promise<void>;
     updateSelectedAddress(selectedAddr: string): void;
     /**

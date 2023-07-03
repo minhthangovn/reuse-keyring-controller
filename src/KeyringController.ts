@@ -215,8 +215,26 @@ export class KeyringController extends BaseController<
     super(config, state);
     this.currentNetwork = defaultNetwork || ETH;
 
-    this.keyringConfig = Object.assign({ initState: state }, config);
+    const keyringConfig = Object.assign({ initState: state }, config);
     // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
+
+    
+    const ethkeyring = new ETHKeyring(keyringConfig);
+    const trxkeyring = new TronKeyring(keyringConfig);
+
+    this.#keyringSwitcher = {
+      [ETH]: ethkeyring,
+      [TRX]: trxkeyring,
+    };
+
+    // Default TRX
+    this.#keyring = this.#keyringSwitcher[this.currentNetwork];
+
+    // await this.getSwitcherKeyring(this.keyringConfig);
+    this.defaultState = {
+      ...this.#keyring.store.getState(),
+      keyrings: [],
+    };
 
     this.removeIdentity = removeIdentity;
     this.syncIdentities = syncIdentities;
@@ -225,31 +243,12 @@ export class KeyringController extends BaseController<
     this.getSelectedAddress = getSelectedAddress;
     this.setAccountLabel = setAccountLabel;
     this.initialize();
+    this.fullUpdate();
   }
 
-  async init(): Promise<void> {
-    await this.getSwitcherKeyring(this.keyringConfig);
-    this.defaultState = {
-      ...this.#keyring.store.getState(),
-      keyrings: [],
-    };
-    await this.fullUpdate();
-  }
+  // async init(): Promise<void> {}
 
-  async getSwitcherKeyring(keyringConfig: any) {
-    const [ethkeyring, trxkeyring] = await Promise.all([
-      new ETHKeyring(keyringConfig),
-      new TronKeyring(keyringConfig),
-    ]);
-
-    this.#keyringSwitcher = {
-      [ETH]: ethkeyring,
-      [TRX]: trxkeyring,
-    };
-
-    // Default TRX
-    this.#keyring = await this.#keyringSwitcher[this.currentNetwork];
-  }
+  // async getSwitcherKeyring(keyringConfig: any) {}
 
   async switchNetwork(chainId: string) {
     // TRX network
