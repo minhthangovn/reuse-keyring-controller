@@ -213,15 +213,16 @@ export class KeyringController extends BaseController<
   ) {
     super(config, state);
     this.currentNetwork = network || ETH;
-    this.name = this.name + this.currentNetwork;
 
     const keyringConfig = Object.assign({ initState: state }, config);
     // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
     switch (this.currentNetwork) {
       case ETH:
+        this.name = this.name;
         this.#keyring = new ETHKeyring(keyringConfig);
         break;
       case TRX:
+        this.name = this.name + this.currentNetwork;
         this.#keyring = new TronKeyring(keyringConfig);
         break;
     }

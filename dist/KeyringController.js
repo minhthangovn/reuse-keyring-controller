@@ -121,14 +121,15 @@ class KeyringController extends base_controller_1.BaseController {
         this.currentNetwork = '';
         this.keyringConfig = {};
         this.currentNetwork = network || ETH;
-        this.name = this.name + this.currentNetwork;
         const keyringConfig = Object.assign({ initState: state }, config);
         // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
         switch (this.currentNetwork) {
             case ETH:
+                this.name = this.name;
                 __classPrivateFieldSet(this, _KeyringController_keyring, new ETHKeyring(keyringConfig), "f");
                 break;
             case TRX:
+                this.name = this.name + this.currentNetwork;
                 __classPrivateFieldSet(this, _KeyringController_keyring, new TronKeyring(keyringConfig), "f");
                 break;
         }
