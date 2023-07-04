@@ -338,6 +338,7 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      *
      * @returns The current state.
      */
+    fullUpdateAccount(): Promise<KeyringMemState>;
     fullUpdate(): Promise<KeyringMemState>;
     /**
      * Add qr hardware keyring.

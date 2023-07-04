@@ -218,7 +218,7 @@ export class KeyringController extends BaseController<
     // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
     switch (this.currentNetwork) {
       case ETH:
-        this.name = this.name;
+        // this.name = this.name;
         this.#keyring = new ETHKeyring(keyringConfig);
         break;
       case TRX:
@@ -318,8 +318,6 @@ export class KeyringController extends BaseController<
         password,
         seed,
       );
-
-      
 
       this.updateIdentities(await this.#keyring.getAccounts());
       this.fullUpdate();
@@ -751,6 +749,27 @@ export class KeyringController extends BaseController<
    *
    * @returns The current state.
    */
+
+  async fullUpdateAccount(): Promise<KeyringMemState> {
+    const keyrings: Keyring[] = await Promise.all<Keyring>(
+      this.#keyring.keyrings.map(
+        async (keyring: KeyringObject, index: number): Promise<Keyring> => {
+          const keyringAccounts = await keyring.getAccounts();
+          const accounts = Array.isArray(keyringAccounts)
+            ? keyringAccounts.map((address) => toChecksumHexAddress(address))
+            : /* istanbul ignore next */ [];
+          return {
+            accounts,
+            index,
+            type: keyring.type,
+          };
+        },
+      ),
+    );
+    this.update({ keyrings: [...keyrings] });
+    return this.#keyring.fullUpdate();
+  }
+
   async fullUpdate(): Promise<KeyringMemState> {
     const keyrings: Keyring[] = await Promise.all<Keyring>(
       this.#keyring.keyrings.map(

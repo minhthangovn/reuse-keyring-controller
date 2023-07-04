@@ -125,7 +125,7 @@ class KeyringController extends base_controller_1.BaseController {
         // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
         switch (this.currentNetwork) {
             case ETH:
-                this.name = this.name;
+                // this.name = this.name;
                 __classPrivateFieldSet(this, _KeyringController_keyring, new ETHKeyring(keyringConfig), "f");
                 break;
             case TRX:
@@ -611,6 +611,23 @@ class KeyringController extends base_controller_1.BaseController {
      *
      * @returns The current state.
      */
+    fullUpdateAccount() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const keyrings = yield Promise.all(__classPrivateFieldGet(this, _KeyringController_keyring, "f").keyrings.map((keyring, index) => __awaiter(this, void 0, void 0, function* () {
+                const keyringAccounts = yield keyring.getAccounts();
+                const accounts = Array.isArray(keyringAccounts)
+                    ? keyringAccounts.map((address) => (0, controller_utils_1.toChecksumHexAddress)(address))
+                    : /* istanbul ignore next */ [];
+                return {
+                    accounts,
+                    index,
+                    type: keyring.type,
+                };
+            })));
+            this.update({ keyrings: [...keyrings] });
+            return __classPrivateFieldGet(this, _KeyringController_keyring, "f").fullUpdate();
+        });
+    }
     fullUpdate() {
         return __awaiter(this, void 0, void 0, function* () {
             const keyrings = yield Promise.all(__classPrivateFieldGet(this, _KeyringController_keyring, "f").keyrings.map((keyring, index) => __awaiter(this, void 0, void 0, function* () {
