@@ -351,6 +351,17 @@ export class KeyringController extends BaseController<
     }
   }
 
+  async createVaultAndKeychain(password: string) {
+    const releaseLock = await this.mutex.acquire();
+    try {
+      const vault = await this.#keyring.createNewVaultAndKeychain(password);
+      return vault;
+    } finally {
+      releaseLock();
+    }
+  }
+  
+
   /**
    * Method to validate a password against the password from the keyring.
    *

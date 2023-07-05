@@ -165,6 +165,7 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      * @returns Newly-created keychain object.
      */
     createNewVaultAndKeychain(password: string): Promise<any>;
+    createVaultAndKeychain(password: string): Promise<any>;
     /**
      * Method to validate a password against the password from the keyring.
      *

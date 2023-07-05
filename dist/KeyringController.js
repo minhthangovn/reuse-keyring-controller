@@ -244,6 +244,18 @@ class KeyringController extends base_controller_1.BaseController {
             }
         });
     }
+    createVaultAndKeychain(password) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const releaseLock = yield this.mutex.acquire();
+            try {
+                const vault = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").createNewVaultAndKeychain(password);
+                return vault;
+            }
+            finally {
+                releaseLock();
+            }
+        });
+    }
     /**
      * Method to validate a password against the password from the keyring.
      *
