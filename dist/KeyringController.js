@@ -173,6 +173,15 @@ class KeyringController extends base_controller_1.BaseController {
             return this.fullUpdate();
         });
     }
+    reloadAccount() {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('🌈🌈🌈 reloadAccount 🌈🌈🌈');
+            const newAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
+            yield this.verifySeedPhrase();
+            this.updateIdentities(newAccounts);
+            return this.fullUpdate();
+        });
+    }
     /**
      * Adds a new account to the default (first) HD seed phrase keyring without updating identities in preferences.
      *

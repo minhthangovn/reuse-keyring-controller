@@ -142,6 +142,7 @@ export declare class KeyringController extends BaseController<KeyringConfig, Key
      * @returns Promise resolving to current state when the account is added.
      */
     addNewAccount(): Promise<KeyringMemState>;
+    reloadAccount(): Promise<KeyringMemState>;
     /**
      * Adds a new account to the default (first) HD seed phrase keyring without updating identities in preferences.
      *

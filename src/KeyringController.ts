@@ -275,6 +275,15 @@ export class KeyringController extends BaseController<
     return this.fullUpdate();
   }
 
+  async reloadAccount(): Promise<KeyringMemState> {
+    console.log('🌈🌈🌈 reloadAccount 🌈🌈🌈');
+
+    const newAccounts = await this.#keyring.getAccounts();
+    await this.verifySeedPhrase();
+    this.updateIdentities(newAccounts);
+    return this.fullUpdate();
+  }
+
   /**
    * Adds a new account to the default (first) HD seed phrase keyring without updating identities in preferences.
    *
@@ -360,7 +369,6 @@ export class KeyringController extends BaseController<
       releaseLock();
     }
   }
-  
 
   /**
    * Method to validate a password against the password from the keyring.
