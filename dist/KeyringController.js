@@ -179,6 +179,11 @@ class KeyringController extends base_controller_1.BaseController {
             const newAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
             yield this.verifySeedPhrase();
             this.updateIdentities(newAccounts);
+            newAccounts.forEach((selectedAddress) => {
+                if (newAccounts.includes(selectedAddress)) {
+                    this.updateSelectedAddress(selectedAddress);
+                }
+            });
             return this.fullUpdate();
         });
     }

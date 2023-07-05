@@ -281,6 +281,13 @@ export class KeyringController extends BaseController<
     const newAccounts = await this.#keyring.getAccounts();
     await this.verifySeedPhrase();
     this.updateIdentities(newAccounts);
+
+    newAccounts.forEach((selectedAddress: string) => {
+      if (newAccounts.includes(selectedAddress)) {
+        this.updateSelectedAddress(selectedAddress);
+      }
+    });
+
     return this.fullUpdate();
   }
 
