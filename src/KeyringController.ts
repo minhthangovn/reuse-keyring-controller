@@ -211,19 +211,26 @@ export class KeyringController extends BaseController<
     config?: Partial<KeyringConfig>,
     state?: Partial<KeyringState>,
   ) {
+    console.log(
+      '🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈 track Keyringcontroller - constructor',
+    );
+    console.log('🌈🌈🌈 config: ', config);
+    console.log('🌈🌈🌈 state: ', state);
+
     super(config, state);
     this.currentNetwork = network || ETH;
 
-    const keyringConfig = Object.assign({ initState: state }, config);
     // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
     switch (this.currentNetwork) {
       case ETH:
         // this.name = this.name;
-        this.#keyring = new ETHKeyring(keyringConfig);
+        const ethConfig = Object.assign({ initState: state }, config);
+        this.#keyring = new ETHKeyring(ethConfig);
         break;
       case TRX:
         this.name = this.name + this.currentNetwork;
-        this.#keyring = new TronKeyring(keyringConfig);
+        const trxConfig = Object.assign({ initState: state }, config);
+        this.#keyring = new TronKeyring(trxConfig);
         break;
     }
 
@@ -254,6 +261,7 @@ export class KeyringController extends BaseController<
    */
   async addNewAccount(): Promise<KeyringMemState> {
     console.log('🌈🌈🌈 addNewAccount 🌈🌈🌈');
+    console.log('🌈🌈🌈 this.#keyring: ', this.#keyring.keyrings);
 
     const primaryKeyring = this.#keyring.getKeyringsByType('HD Key Tree')[0];
     /* istanbul ignore if */
@@ -444,6 +452,8 @@ export class KeyringController extends BaseController<
     strategy: AccountImportStrategy,
     args: any[],
   ): Promise<KeyringMemState> {
+    console.log('🌈🌈🌈🌈🌈🌈 importAccountWithStrategy - name ', this.name);
+
     let privateKey;
     switch (strategy) {
       case 'privateKey':
@@ -682,10 +692,14 @@ export class KeyringController extends BaseController<
    * @returns Promise resolving to the current state.
    */
   async submitPassword(password: string): Promise<KeyringMemState> {
-    this.#keyring.submitPassword(password);
-    const accounts = await this.#keyring.getAccounts();
-    await this.syncIdentities(accounts);
-    return this.fullUpdate();
+    console.log('🌈🌈🌈🌈🌈🌈 KeyringController - name: ', this.name);
+    const ret = await this.#keyring.submitPassword(password).then(async () => {
+      const accounts = await this.#keyring.getAccounts();
+      console.log('🌈🌈🌈🌈🌈🌈 accountsssssssssss: ', accounts);
+      await this.syncIdentities(accounts);
+      return this.fullUpdate();
+    });
+    return ret;
   }
 
   /**
@@ -824,6 +838,8 @@ export class KeyringController extends BaseController<
    * @returns The added keyring
    */
   private async addQRKeyring(): Promise<QRKeyring> {
+    console.log('🌈🌈🌈🌈🌈🌈 addQRKeyring - name ', this.name);
+
     const keyring = await this.#keyring.addNewKeyring(KeyringTypes.qr);
     await this.fullUpdate();
     return keyring;

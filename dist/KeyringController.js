@@ -108,6 +108,9 @@ class KeyringController extends base_controller_1.BaseController {
      * @param state - Initial state to set on this controller.
      */
     constructor({ removeIdentity, syncIdentities, updateIdentities, setSelectedAddress, getSelectedAddress, setAccountLabel, network, }, config, state) {
+        console.log('🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈 track Keyringcontroller - constructor');
+        console.log('🌈🌈🌈 config: ', config);
+        console.log('🌈🌈🌈 state: ', state);
         super(config, state);
         this.mutex = new async_mutex_1.Mutex();
         /**
@@ -121,16 +124,17 @@ class KeyringController extends base_controller_1.BaseController {
         this.currentNetwork = '';
         this.keyringConfig = {};
         this.currentNetwork = network || ETH;
-        const keyringConfig = Object.assign({ initState: state }, config);
         // this.#keyring = new TronKeyring(Object.assign({ initState: state }, config));
         switch (this.currentNetwork) {
             case ETH:
                 // this.name = this.name;
-                __classPrivateFieldSet(this, _KeyringController_keyring, new ETHKeyring(keyringConfig), "f");
+                const ethConfig = Object.assign({ initState: state }, config);
+                __classPrivateFieldSet(this, _KeyringController_keyring, new ETHKeyring(ethConfig), "f");
                 break;
             case TRX:
                 this.name = this.name + this.currentNetwork;
-                __classPrivateFieldSet(this, _KeyringController_keyring, new TronKeyring(keyringConfig), "f");
+                const trxConfig = Object.assign({ initState: state }, config);
+                __classPrivateFieldSet(this, _KeyringController_keyring, new TronKeyring(trxConfig), "f");
                 break;
         }
         // await this.getSwitcherKeyring(this.keyringConfig);
@@ -155,6 +159,7 @@ class KeyringController extends base_controller_1.BaseController {
     addNewAccount() {
         return __awaiter(this, void 0, void 0, function* () {
             console.log('🌈🌈🌈 addNewAccount 🌈🌈🌈');
+            console.log('🌈🌈🌈 this.#keyring: ', __classPrivateFieldGet(this, _KeyringController_keyring, "f").keyrings);
             const primaryKeyring = __classPrivateFieldGet(this, _KeyringController_keyring, "f").getKeyringsByType('HD Key Tree')[0];
             /* istanbul ignore if */
             if (!primaryKeyring) {
@@ -330,6 +335,7 @@ class KeyringController extends base_controller_1.BaseController {
      */
     importAccountWithStrategy(strategy, args) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log('🌈🌈🌈🌈🌈🌈 importAccountWithStrategy - name ', this.name);
             let privateKey;
             switch (strategy) {
                 case 'privateKey':
@@ -553,10 +559,14 @@ class KeyringController extends base_controller_1.BaseController {
      */
     submitPassword(password) {
         return __awaiter(this, void 0, void 0, function* () {
-            __classPrivateFieldGet(this, _KeyringController_keyring, "f").submitPassword(password);
-            const accounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
-            yield this.syncIdentities(accounts);
-            return this.fullUpdate();
+            console.log('🌈🌈🌈🌈🌈🌈 KeyringController - name: ', this.name);
+            const ret = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").submitPassword(password).then(() => __awaiter(this, void 0, void 0, function* () {
+                const accounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
+                console.log('🌈🌈🌈🌈🌈🌈 accountsssssssssss: ', accounts);
+                yield this.syncIdentities(accounts);
+                return this.fullUpdate();
+            }));
+            return ret;
         });
     }
     /**
@@ -679,6 +689,7 @@ class KeyringController extends base_controller_1.BaseController {
      */
     addQRKeyring() {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log('🌈🌈🌈🌈🌈🌈 addQRKeyring - name ', this.name);
             const keyring = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").addNewKeyring(KeyringTypes.qr);
             yield this.fullUpdate();
             return keyring;
